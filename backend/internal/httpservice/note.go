@@ -2,10 +2,11 @@ package httpservice
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,8 +29,12 @@ func NewNoteHandler() *NoteHandler {
 }
 
 func (n *NoteHandler) GetNote(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	logrus.Infof("Request for note id: %d", id)
+	id := c.Param("id")
+	if err := validation.Validate(id, validation.Required, is.Int); err != nil {
+		abortRequestWithError(c, NewAppError(ErrorCodeValidationFailed, err.Error()))
+		return
+	}
+	logrus.Infof("request for note id: %s", id)
 
 	// FIXME: Retrieve the note from db
 	c.JSON(http.StatusOK, NoteResponse{
