@@ -5,9 +5,9 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"github.com/vivekweb2013/gitnoter/internal/applicationconfig"
+	"github.com/vivekweb2013/gitnoter/internal/httpservice"
 )
 
 // serveCmd represents the serve command
@@ -15,8 +15,9 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts http server",
 	Long:  `Starts the http server with configured options`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		applicationconfig := applicationconfig.NewApplicationConfig(conf)
+		return httpservice.Run(applicationconfig)
 	},
 }
 
