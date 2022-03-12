@@ -3,7 +3,11 @@ package cmd
 import (
 	"os"
 
+	"github.com/iamolegga/enviper"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/vivekweb2013/gitnoter/internal/config"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -30,9 +34,29 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gitnoter.yaml)")
+	initConfig()
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func initConfig() {
+	// The enviper is a wrapper over viper that loads the config from file & overrides
+	// them with env variables if available. If the config file is missing it simply ignores it
+	e := enviper.New(viper.New())
+
+	var cfgFile string
+	var conf config.Config
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is .gitnoter.yaml)")
+	if cfgFile != "" {
+		e.SetConfigFile(cfgFile)
+	} else {
+		e.AddConfigPath(".")
+		e.SetConfigName(".gitnoter")
+	}
+
+	if err := e.Unmarshal(&conf); err == nil {
+		logrus.Infof("Using the config file: %s", e.ConfigFileUsed())
+	}
 }
