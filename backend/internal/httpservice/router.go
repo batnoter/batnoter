@@ -22,6 +22,9 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	noteHandler := NewNoteHandler(applicationconfig.NoteService)
 	v1 := router.Group("api/v1")
 	v1.GET("/note/:id", noteHandler.GetNote)
+	v1.POST("/note", noteHandler.CreateNote)
+	v1.PUT("/note/:id", noteHandler.UpdateNote)
+	v1.DELETE("/note/:id", noteHandler.DeleteNote)
 
 	address := net.JoinHostPort(applicationconfig.Config.HTTPServer.Host, applicationconfig.Config.HTTPServer.Port)
 	server := http.Server{
