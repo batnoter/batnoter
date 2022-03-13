@@ -7,6 +7,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/vivekweb2013/gitnoter/internal/applicationconfig"
+	"github.com/vivekweb2013/gitnoter/internal/db"
 	"github.com/vivekweb2013/gitnoter/internal/httpservice"
 )
 
@@ -16,7 +17,11 @@ var serveCmd = &cobra.Command{
 	Short: "Starts http server",
 	Long:  `Starts the http server with configured options`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		applicationconfig := applicationconfig.NewApplicationConfig(conf)
+		db, err := db.Connect(conf.Database)
+		if err != nil {
+			return err
+		}
+		applicationconfig := applicationconfig.NewApplicationConfig(conf, db)
 		return httpservice.Run(applicationconfig)
 	},
 }

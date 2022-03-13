@@ -1,13 +1,12 @@
 database:
   host: localhost
   port: 5432
-  name: gn_db
+  dbname: gn_db
   username: root
   password: secret
+  debug: false
 
 httpserver:
   host: localhost
   port: 8080
   debug: false
-
-  
