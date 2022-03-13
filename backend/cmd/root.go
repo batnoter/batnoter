@@ -36,11 +36,18 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
+	initLogger()
 	initConfig()
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func initLogger() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
 }
 
 func initConfig() {
@@ -58,6 +65,6 @@ func initConfig() {
 	}
 
 	if err := e.Unmarshal(&conf); err == nil {
-		logrus.Infof("Using the config file: %s", e.ConfigFileUsed())
+		logrus.Infof("using the config file: %s", e.ConfigFileUsed())
 	}
 }
