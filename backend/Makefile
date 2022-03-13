@@ -1,4 +1,4 @@
-.PHONY: network postgres createdb dropdb migrateup migratedown addmigration
+.PHONY: network postgres createdb dropdb migrateup migratedown addmigration test
 
 network:
 	docker network create gn-network
@@ -20,3 +20,6 @@ migratedown:
 
 addmigration:
 	migrate create -ext sql -dir migrations ${file}
+
+test:
+	go test -v -cover ./...

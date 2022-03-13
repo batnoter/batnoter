@@ -19,7 +19,7 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	router := gin.New()
 	router.Use(gin.Recovery())
 
-	noteHandler := NewNoteHandler()
+	noteHandler := NewNoteHandler(applicationconfig.NoteService)
 	v1 := router.Group("api/v1")
 	v1.GET("/note/:id", noteHandler.GetNote)
 
