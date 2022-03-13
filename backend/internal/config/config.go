@@ -1,12 +1,13 @@
 package config
 
 type Database struct {
-	Host     string
-	Port     string
-	Name     string
-	Username string
-	Password string
-	DebugLog bool
+	Host       string
+	Port       string
+	DBName     string
+	Username   string
+	Password   string
+	DriverName string
+	Debug      bool
 }
 
 type HTTPServer struct {
