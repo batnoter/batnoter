@@ -1,5 +1,9 @@
 package config
 
+type App struct {
+	SecretKey string
+}
+
 type Database struct {
 	Host       string
 	Port       string
@@ -17,6 +21,7 @@ type HTTPServer struct {
 }
 
 type Config struct {
+	App        App
 	Database   Database
 	HTTPServer HTTPServer
 }

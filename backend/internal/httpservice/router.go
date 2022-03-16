@@ -20,11 +20,15 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	router.Use(gin.Recovery())
 
 	noteHandler := NewNoteHandler(applicationconfig.NoteService)
+	authHandler := NewAuthHandler(applicationconfig.AuthService)
+	authMiddleware := NewMiddleware(applicationconfig.AuthService)
+
 	v1 := router.Group("api/v1")
-	v1.GET("/note/:id", noteHandler.GetNote)
-	v1.POST("/note", noteHandler.CreateNote)
-	v1.PUT("/note/:id", noteHandler.UpdateNote)
-	v1.DELETE("/note/:id", noteHandler.DeleteNote)
+	v1.GET("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.GetNote)
+	v1.POST("/note", authMiddleware.AuthorizeToken(), noteHandler.CreateNote)
+	v1.PUT("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.UpdateNote)
+	v1.DELETE("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.DeleteNote)
+	v1.GET("/auth/login", authHandler.Login)
 
 	address := net.JoinHostPort(applicationconfig.Config.HTTPServer.Host, applicationconfig.Config.HTTPServer.Port)
 	server := http.Server{
