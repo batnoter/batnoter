@@ -72,6 +72,7 @@ gitnoter-backend /app/gitnoter migrateup
 
 # start server (replace '<postgres-container-ip>' with the actual ip-address)
 docker run --network gn-network -it \
+-e SECRETKEY='secret' \
 -e DATABASE_HOST='<postgres-container-ip>' \
 -e DATABASE_PORT='5432' \
 -e DATABASE_DBNAME='gn_db' \
