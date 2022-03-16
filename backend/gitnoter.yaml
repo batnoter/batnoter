@@ -1,15 +1,15 @@
 app:
-  secretkey: secret
+  secretKey: secret
 
 database:
   host: localhost
   port: 5432
-  dbname: gn_db
+  dbName: gn_db
   username: root
   password: secret
   debug: false
 
-httpserver:
+httpServer:
   host: localhost
   port: 8080
   debug: false
