@@ -20,8 +20,18 @@ type HTTPServer struct {
 	Debug bool
 }
 
+type OAuth2 struct {
+	Github Github
+}
+
+type Github struct {
+	ClientID     string
+	ClientSecret string
+}
+
 type Config struct {
 	App        App
 	Database   Database
 	HTTPServer HTTPServer
+	OAuth2     OAuth2
 }

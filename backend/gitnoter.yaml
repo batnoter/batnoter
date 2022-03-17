@@ -13,3 +13,8 @@ httpServer:
   host: localhost
   port: 8080
   debug: false
+
+oAuth2:
+  github:
+    clientId: "<GITHUB_CLIENT_ID>"
+    clientSecret: "<GITHUB_CLIENT_SECRET>"

@@ -82,6 +82,8 @@ docker run --network gn-network -it \
 -e HTTPSERVER_HOST='0.0.0.0' \
 -e HTTPSERVER_PORT='8080' \
 -e HTTPSERVER_DEBUG='true' \
+-e OAUTH2_GITHUB_CLIENTID='<github_client_id>' \
+-e OAUTH2_GITHUB_CLIENTSECRET='<github_client_secret>' \
 -p 8080:8080 \
 gitnoter-backend
 ```
