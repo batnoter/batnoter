@@ -20,7 +20,6 @@ import (
 
 const (
 	noteId                = 123
-	email                 = "test@example.com"
 	title                 = "Sample Note"
 	content               = "This is a sample note!"
 	internalServerErrJson = `{"code":"internal_server_error", "message":"something went wrong. contact support"}`
@@ -33,6 +32,7 @@ func TestGetNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		n := note.Note{
 			Model: gorm.Model{
 				ID:        uint(noteId),
@@ -61,6 +61,7 @@ func TestGetNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		n := note.Note{}
 		mockService.EXPECT().Get(noteId).Return(n, errors.New("some error"))
 		handler := NewNoteHandler(mockService)
@@ -81,6 +82,7 @@ func TestGetNote(t *testing.T) {
 		handler := NewNoteHandler(mockService)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		router.GET("/api/v1/note/:id", handler.GetNote)
 		response := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", "abc"), nil)
@@ -98,6 +100,7 @@ func TestCreateNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		n := note.Note{
 			Email:   email,
 			Title:   title,
@@ -122,6 +125,7 @@ func TestCreateNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
 
@@ -146,6 +150,7 @@ func TestCreateNote(t *testing.T) {
 				handler := NewNoteHandler(mockService)
 
 				router := gin.Default()
+				gin.SetMode(gin.TestMode)
 				router.POST("/api/v1/note", handler.CreateNote)
 				response := httptest.NewRecorder()
 				req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(test.notePayloadJson))
@@ -165,6 +170,7 @@ func TestUpdateNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		n := note.Note{
 			Model: gorm.Model{
 				ID: uint(noteId),
@@ -192,6 +198,7 @@ func TestUpdateNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
 
@@ -211,6 +218,7 @@ func TestUpdateNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		handler := NewNoteHandler(mockService)
 
 		router.PUT("/api/v1/note/:id", handler.UpdateNote)
@@ -234,6 +242,7 @@ func TestUpdateNote(t *testing.T) {
 				handler := NewNoteHandler(mockService)
 
 				router := gin.Default()
+				gin.SetMode(gin.TestMode)
 				router.PUT("/api/v1/note/:id", handler.UpdateNote)
 				response := httptest.NewRecorder()
 				req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(test.notePayloadJson))
@@ -253,6 +262,7 @@ func TestDeleteNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		mockService.EXPECT().Delete(noteId).Return(nil)
 		handler := NewNoteHandler(mockService)
 
@@ -271,6 +281,7 @@ func TestDeleteNote(t *testing.T) {
 		mockService := note.NewMockService(ctrl)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		mockService.EXPECT().Delete(noteId).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
 
@@ -290,6 +301,7 @@ func TestDeleteNote(t *testing.T) {
 		handler := NewNoteHandler(mockService)
 
 		router := gin.Default()
+		gin.SetMode(gin.TestMode)
 		router.DELETE("/api/v1/note/:id", handler.DeleteNote)
 		response := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", "abc"), nil)

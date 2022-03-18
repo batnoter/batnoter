@@ -2,7 +2,9 @@ package httpservice
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	gh "github.com/google/go-github/v43/github"
 	"github.com/google/uuid"
@@ -13,6 +15,14 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 )
+
+type UserResponsePayload struct {
+	Email      string     `json:"email"`
+	Name       string     `json:"name,omitempty"`
+	Location   string     `json:"location,omitempty"`
+	AvatarURL  string     `json:"avatar_url,omitempty"`
+	DisabledAt *time.Time `json:"disabled_at,omitempty"`
+}
 
 type AuthHandler struct {
 	authService  auth.Service
@@ -106,6 +116,28 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 	// since the client(frontend) can only read headers/response with ajax request, and this call is not ajax
 	c.Header("Content-Type", "text/html")
 	c.String(200, `<!DOCTYPE html><html><body><script>(function(){localStorage.setItem("token","%s");location.replace("/");}());</script></body></html>`, appToken)
+}
+
+func (a *AuthHandler) Profile(c *gin.Context) {
+	claims, _ := c.Get("claims")
+	if claims == nil {
+		logrus.Errorf("failed to get claims from context")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	email := claims.(jwt.MapClaims)["sub"].(string)
+	u, err := a.userService.GetByEmail(email)
+	if err != nil {
+		abortRequestWithError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, UserResponsePayload{
+		Email:      u.Email,
+		Name:       u.Name,
+		Location:   u.Location,
+		AvatarURL:  u.AvatarURL,
+		DisabledAt: u.DisabledAt,
+	})
 }
 
 func mapUserAttributes(dbUser *user.User, email string, githubToken string, githubUser *gh.User) {

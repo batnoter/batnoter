@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	userId = 123
-	email  = "john.doe@example.com"
+	userId    = 123
+	email     = "john.doe@example.com"
+	name      = "John Doe"
+	location  = "New York"
+	avatarURL = "http://example.com/avatar"
 )
 
 func TestServiceImpl_Get(t *testing.T) {
@@ -83,10 +86,10 @@ func TestServiceImpl_Save(t *testing.T) {
 				CreatedAt: date,
 				UpdatedAt: date,
 			},
-			Email:          "john.doe@example.com",
-			Name:           "John Doe",
-			Location:       "New York",
-			AvatarURL:      "http://example.com/avatar",
+			Email:          email,
+			Name:           name,
+			Location:       location,
+			AvatarURL:      avatarURL,
 			GithubID:       12345,
 			GithubUsername: "johndoe",
 			GithubToken:    "cOLcG0c0gJn2iv25hrTPY3A%3D3D",

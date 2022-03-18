@@ -18,4 +18,4 @@ oAuth2:
   github:
     clientID: "<GITHUB_CLIENT_ID>"
     clientSecret: "<GITHUB_CLIENT_SECRET>"
-    redirectURL: "http://localhost:8080/api/v1/oauth2/github/callback"
+    redirectURL: "http://localhost:3000/api/v1/oauth2/github/callback"
