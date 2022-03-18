@@ -16,8 +16,7 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	router := gin.New()
-	router.Use(gin.Recovery())
+	router := gin.Default()
 
 	noteHandler := NewNoteHandler(applicationconfig.NoteService)
 	authHandler := NewAuthHandler(applicationconfig.AuthService, applicationconfig.UserService, applicationconfig.Config.OAuth2)
