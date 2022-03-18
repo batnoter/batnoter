@@ -29,6 +29,7 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	v1.DELETE("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.DeleteNote)
 	v1.GET("/oauth2/login/github", authHandler.GithubLogin)
 	v1.GET("/oauth2/github/callback", authHandler.GithubOAuth2Callback)
+	v1.GET("/user/me", authMiddleware.AuthorizeToken(), authHandler.Profile)
 
 	address := net.JoinHostPort(applicationconfig.Config.HTTPServer.Host, applicationconfig.Config.HTTPServer.Port)
 	server := http.Server{
