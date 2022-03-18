@@ -1,14 +1,13 @@
 package auth
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLogin(t *testing.T) {
-	t.Run("should retrieve a valid token when login request is valid", func(t *testing.T) {
+	t.Run("should retrieve a valid token when request is valid", func(t *testing.T) {
 		tokenConfig := TokenConfig{
 			SecretKey: "key",
 			Issuer:    "test",
@@ -16,8 +15,7 @@ func TestLogin(t *testing.T) {
 		email := "john.doe@example.com"
 		service := NewService(tokenConfig)
 
-		token, err := service.Login(email)
-		fmt.Println(token)
+		_, err := service.GenerateToken(email)
 		assert.NoError(t, err)
 	})
 }

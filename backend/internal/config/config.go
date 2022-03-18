@@ -27,6 +27,7 @@ type OAuth2 struct {
 type Github struct {
 	ClientID     string
 	ClientSecret string
+	RedirectURL  string
 }
 
 type Config struct {

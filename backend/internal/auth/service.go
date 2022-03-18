@@ -9,7 +9,7 @@ import (
 
 //go:generate mockgen -source=service.go -package=auth -destination=mock_service.go
 type Service interface {
-	Login(email string) (string, error)
+	GenerateToken(email string) (string, error)
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
@@ -28,11 +28,7 @@ func NewService(tokenConfig TokenConfig) Service {
 	}
 }
 
-func (s *serviceImpl) Login(email string) (string, error) {
-	return s.generateToken(email)
-}
-
-func (s *serviceImpl) generateToken(email string) (string, error) {
+func (s *serviceImpl) GenerateToken(email string) (string, error) {
 	claims := jwt.StandardClaims{
 		Subject:   email,
 		ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
