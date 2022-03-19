@@ -1,7 +1,13 @@
-import { Bookmark, ChevronLeft, HelpCenter, Pageview, Settings } from '@mui/icons-material';
-import { Divider, IconButton, List, ListItemButton, ListItemIcon, ListItemText, styled, Toolbar } from '@mui/material';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import HelpCenterIcon from '@mui/icons-material/HelpCenter';
+import NotesIcon from '@mui/icons-material/Notes';
+import SettingsIcon from '@mui/icons-material/Settings';
+import StarIcon from '@mui/icons-material/Star';
+import { Divider, IconButton, List, ListItemButton, ListItemIcon, ListItemText, styled, Toolbar, Typography } from '@mui/material';
 import MuiDrawer from '@mui/material/Drawer';
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { User } from '../reducer/user/userSlice';
 
 
@@ -39,17 +45,22 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 );
 
 const AppDrawer: React.FC<Props> = ({ isOpen, toggleDrawer }) => {
+  const { pathname } = useLocation();
   return (
     <Drawer variant="permanent" open={isOpen}>
       <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', px: [1], }} >
-        <IconButton onClick={() => toggleDrawer(isOpen)}> <ChevronLeft /> </IconButton>
+        <Typography component="h1" variant="h5" color="inherit" noWrap sx={{ flexGrow: 1 }}>
+          Git Noter
+        </Typography>
+        <IconButton onClick={() => toggleDrawer(isOpen)}> <ChevronLeftIcon /> </IconButton>
       </Toolbar>
       <Divider />
       <List component="nav">
-        <ListItemButton> <ListItemIcon> <Pageview /> </ListItemIcon> <ListItemText primary="Search" /> </ListItemButton>
-        <ListItemButton> <ListItemIcon> <Bookmark /> </ListItemIcon> <ListItemText primary="Bookmarks" /> </ListItemButton>
-        <ListItemButton> <ListItemIcon> <Settings /> </ListItemIcon> <ListItemText primary="Settings" /> </ListItemButton>
-        <ListItemButton> <ListItemIcon> <HelpCenter /> </ListItemIcon> <ListItemText primary="Help" /> </ListItemButton>
+        <ListItemButton component={Link} to={"/"} selected={pathname === '/'}> <ListItemIcon> <NotesIcon /> </ListItemIcon><ListItemText primary="My Notes" /></ListItemButton>
+        <ListItemButton component={Link} to={"/new"} selected={pathname === '/new'}> <ListItemIcon> <AddCircleIcon /> </ListItemIcon><ListItemText primary="Create Note" /></ListItemButton>
+        <ListItemButton component={Link} to={"/favorites"} selected={pathname === '/favorites'}> <ListItemIcon> <StarIcon /> </ListItemIcon> <ListItemText primary="Favorites" /> </ListItemButton>
+        <ListItemButton component={Link} to={"/settings"} selected={pathname === '/settings'}> <ListItemIcon> <SettingsIcon /> </ListItemIcon><ListItemText primary="Settings" /></ListItemButton>
+        <ListItemButton component={Link} to={"/help"} selected={pathname === '/help'}> <ListItemIcon> <HelpCenterIcon /> </ListItemIcon> <ListItemText primary="Help" /> </ListItemButton>
         <Divider sx={{ my: 1 }} />
       </List>
     </Drawer>
