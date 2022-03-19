@@ -59,10 +59,11 @@ func (a *AuthHandler) GithubLogin(c *gin.Context) {
 }
 
 func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
+	logrus.Info("github oauth2 callback started")
 	state, _ := c.Cookie("state")
 	stateFromCallback := c.Query("state")
 	code := c.Query("code")
-	failRedirectPath := "/?error=true"
+	failRedirectPath := "/?login_error=true"
 
 	if stateFromCallback != state {
 		logrus.Error("invalid oauth state")
@@ -81,12 +82,12 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 
 	githubUser, _, err := client.Users.Get(c, "")
 	if err != nil {
-		logrus.Errorf("auth code exchange for token failed: %s", err.Error())
+		logrus.Errorf("get user from github failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
 		return
 	}
 	if githubUser == nil || githubUser.Email == nil {
-		logrus.Errorf("failed to process github user object: %s", err.Error())
+		logrus.Errorf("processing github user object failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
 		return
 	}
@@ -94,7 +95,7 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 	// check if user record already exist
 	dbUser, err := a.userService.GetByEmail(*githubUser.Email)
 	if err != nil {
-		logrus.Errorf("retrieving user with email failed: %s", err.Error())
+		logrus.Errorf("retrieving user from db using email failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
 		return
 	}
@@ -116,6 +117,7 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 	// since the client(frontend) can only read headers/response with ajax request, and this call is not ajax
 	c.Header("Content-Type", "text/html")
 	c.String(200, `<!DOCTYPE html><html><body><script>(function(){localStorage.setItem("token","%s");location.replace("/");}());</script></body></html>`, appToken)
+	logrus.Info("github oauth2 callback finished")
 }
 
 func (a *AuthHandler) Profile(c *gin.Context) {
