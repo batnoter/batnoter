@@ -1,17 +1,21 @@
+
+import { Toolbar } from '@mui/material';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
-import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Typography from '@mui/material/Typography';
 import * as React from 'react';
 import { useEffect } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getUserProfileAsync, logout, selectUser } from '../reducer/user/userSlice';
+import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout } from '../reducer/user/userSlice';
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
+import { Editor } from './Editor';
+import { Favorites } from './Favorites';
+import { Finder } from './Finder';
 
-function MainContent() {
+const Main = () => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(getUserProfileAsync())
@@ -21,29 +25,32 @@ function MainContent() {
   const toggleDrawer = (open: boolean) => {
     setOpen(!open);
   };
-  const logoutHandler = () => {
-    dispatch(logout())
+  const handleLogout = () => {
+    dispatch(userLogout())
   }
   const user = useAppSelector(selectUser);
+  const userStatus = useAppSelector(selectUserStatus);
+  const setUserStatus = () => {
+    dispatch(userLoading())
+  }
 
   return (
     <ThemeProvider theme={createTheme()}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar logoutHandler={logoutHandler} user={user} isOpen={open} toggleDrawer={toggleDrawer} />
+        <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user} isOpen={open} toggleDrawer={toggleDrawer} />
         <AppDrawer user={user} isOpen={open} toggleDrawer={toggleDrawer} />
-        <Box
-          component="main" sx={{
-            backgroundColor: (theme) => theme.palette.mode === 'light'
-              ? theme.palette.grey[100] : theme.palette.grey[900],
-            flexGrow: 1, height: '100vh', overflow: 'auto',
-          }}
-        >
+        <Box component="main" sx={{
+          backgroundColor: (theme) => theme.palette.mode === 'light'
+            ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
+        }}>
+          <Toolbar />
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Typography variant="body2" color="text.secondary" align="center" sx={{ pt: 4 }}>
-              {'Copyright © '} <Link color="inherit" href="https://batnoter.com/"> batnoter.com </Link>
-              {' '}{new Date().getFullYear()} {'.'}
-            </Typography>
+            <Routes>
+              <Route path="/" element={<Finder />} ></Route>
+              <Route path="/new" element={<Editor />} ></Route>
+              <Route path="/favorites" element={<Favorites />} ></Route>
+            </Routes>
           </Container>
         </Box>
       </Box>
@@ -51,6 +58,4 @@ function MainContent() {
   );
 }
 
-export default function Main() {
-  return <MainContent />;
-}
+export default Main
