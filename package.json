@@ -16,6 +16,7 @@
     "@types/react": "^16.14.24",
     "@types/react-dom": "^16.9.14",
     "@types/react-redux": "^7.1.23",
+    "http-proxy-middleware": "^2.0.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^7.2.6",
@@ -28,7 +29,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint src/**/*.tsx"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -46,6 +48,10 @@
     ]
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.15.0",
+    "@typescript-eslint/parser": "^5.15.0",
+    "eslint": "^8.11.0",
+    "eslint-plugin-react": "^7.29.4",
     "source-map-explorer": "^2.5.2"
   }
 }
