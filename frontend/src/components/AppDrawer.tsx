@@ -10,7 +10,6 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '../reducer/user/userSlice';
 
-
 interface Props {
   user: User | null
   isOpen: boolean,
