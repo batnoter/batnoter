@@ -7,6 +7,7 @@ import (
 
 //go:generate mockgen -source=repo.go -package=note -destination=mock_repo.go
 type Repo interface {
+	GetAll(email string) ([]Note, error)
 	Get(noteId int) (Note, error)
 	Save(note Note) error
 	Delete(noteId int) error
@@ -20,6 +21,14 @@ func NewRepository(db *gorm.DB) Repo {
 	return &repoImpl{
 		db: db,
 	}
+}
+
+func (r *repoImpl) GetAll(email string) ([]Note, error) {
+	var notes []Note
+	if err := r.db.Where("email = ?", email).Find(&notes).Error; err != nil {
+		return notes, errors.Wrap(err, "failed to retrieve notes from database")
+	}
+	return notes, nil
 }
 
 func (r *repoImpl) Get(noteId int) (Note, error) {

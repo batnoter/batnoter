@@ -23,6 +23,7 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	authMiddleware := NewMiddleware(applicationconfig.AuthService)
 
 	v1 := router.Group("api/v1")
+	v1.GET("/note", authMiddleware.AuthorizeToken(), noteHandler.GetAllNotes)
 	v1.GET("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.GetNote)
 	v1.POST("/note", authMiddleware.AuthorizeToken(), noteHandler.CreateNote)
 	v1.PUT("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.UpdateNote)

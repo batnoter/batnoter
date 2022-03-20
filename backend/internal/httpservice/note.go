@@ -1,11 +1,13 @@
 package httpservice
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
@@ -19,14 +21,12 @@ type NoteHandler struct {
 }
 
 type NoteRequestPayload struct {
-	Email   string `json:"email"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
 func (n NoteRequestPayload) Validate() error {
 	return validation.ValidateStruct(&n,
-		validation.Field(&n.Email, validation.Required, is.Email),
 		validation.Field(&n.Title, validation.Required, validation.Length(1, 255)),
 		validation.Field(&n.Content, validation.Required, validation.Length(1, 5000)),
 	)
@@ -36,13 +36,41 @@ type NoteResponsePayload struct {
 	ID        uint       `json:"id"`
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
-	Email     string     `json:"email"`
 	Title     string     `json:"title"`
 	Content   string     `json:"content"`
 }
 
 func NewNoteHandler(noteService note.Service) *NoteHandler {
 	return &NoteHandler{noteService: noteService}
+}
+
+func (n *NoteHandler) GetAllNotes(c *gin.Context) {
+	logrus.Info("request to retrieve notes started")
+	email, err := getEmailFromContext(c)
+	if err != nil {
+		logrus.Error("getting email from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	notes, err := n.noteService.GetAll(email)
+	if err != nil {
+		abortRequestWithError(c, err)
+		return
+	}
+	logrus.Infof("total notes retrieved from db: &d", len(notes))
+	notesResp := make([]NoteResponsePayload, 0, len(notes))
+	for _, note := range notes {
+		notesResp = append(notesResp, NoteResponsePayload{
+			ID:        note.ID,
+			CreatedAt: &note.CreatedAt,
+			UpdatedAt: &note.UpdatedAt,
+			Title:     note.Title,
+			Content:   note.Content,
+		})
+	}
+	c.JSON(http.StatusOK, notesResp)
+	logrus.Info("request to retrieve notes successful")
 }
 
 func (n *NoteHandler) GetNote(c *gin.Context) {
@@ -63,7 +91,6 @@ func (n *NoteHandler) GetNote(c *gin.Context) {
 		ID:        note.ID,
 		CreatedAt: &note.CreatedAt,
 		UpdatedAt: &note.UpdatedAt,
-		Email:     note.Email,
 		Title:     note.Title,
 		Content:   note.Content,
 	})
@@ -78,8 +105,14 @@ func (n *NoteHandler) CreateNote(c *gin.Context) {
 		return
 	}
 	logrus.Info("request to create note")
+	email, err := getEmailFromContext(c)
+	if err != nil {
+		logrus.Error("getting email from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 	note := note.Note{
-		Email:   noteReqPayload.Email,
+		Email:   email,
 		Title:   noteReqPayload.Title,
 		Content: noteReqPayload.Content,
 	}
@@ -105,11 +138,17 @@ func (n *NoteHandler) UpdateNote(c *gin.Context) {
 		return
 	}
 	logrus.WithField("note_id", noteId).Info("request to update note")
+	email, err := getEmailFromContext(c)
+	if err != nil {
+		logrus.Error("getting email from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 	note := note.Note{
 		Model: gorm.Model{
 			ID: uint(noteId),
 		},
-		Email:   noteReqPayload.Email,
+		Email:   email,
 		Title:   noteReqPayload.Title,
 		Content: noteReqPayload.Content,
 	}
@@ -136,4 +175,13 @@ func (n *NoteHandler) DeleteNote(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 	logrus.WithField("note_id", id).Info("request to delete note successful")
+}
+
+func getEmailFromContext(c *gin.Context) (string, error) {
+	claims, _ := c.Get("claims")
+	if claims == nil {
+		return "", errors.New("failed to get claims from context")
+	}
+	email := claims.(jwt.MapClaims)["sub"].(string)
+	return email, nil
 }
