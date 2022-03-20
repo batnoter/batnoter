@@ -8,12 +8,13 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout } from '../reducer/user/userSlice';
+import { getAllNotesAsync } from '../reducer/note/noteSlice';
+import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout, UserStatus } from '../reducer/user/userSlice';
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
-import { Editor } from './Editor';
+import Editor from './Editor';
 import { Favorites } from './Favorites';
-import { Finder } from './Finder';
+import Finder from './Finder';
 
 const Main = () => {
   const dispatch = useAppDispatch();
@@ -33,6 +34,12 @@ const Main = () => {
   const setUserStatus = () => {
     dispatch(userLoading())
   }
+
+  useEffect(() => {
+    if(userStatus == UserStatus.IDLE && user != null){
+      dispatch(getAllNotesAsync())
+    }
+  }, [userStatus, user])
 
   return (
     <ThemeProvider theme={createTheme()}>
