@@ -62,6 +62,21 @@ func (mr *MockServiceMockRecorder) Get(noteId interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockService)(nil).Get), noteId)
 }
 
+// GetAll mocks base method.
+func (m *MockService) GetAll(email string) ([]Note, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", email)
+	ret0, _ := ret[0].([]Note)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockServiceMockRecorder) GetAll(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockService)(nil).GetAll), email)
+}
+
 // Save mocks base method.
 func (m *MockService) Save(note Note) error {
 	m.ctrl.T.Helper()
