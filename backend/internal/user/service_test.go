@@ -82,7 +82,7 @@ func TestServiceImpl_Save(t *testing.T) {
 		date := time.Date(2022, 02, 12, 4, 45, 55, 0, time.UTC)
 		n := User{
 			Model: gorm.Model{
-				ID:        1,
+				ID:        userID,
 				CreatedAt: date,
 				UpdatedAt: date,
 			},
@@ -97,9 +97,10 @@ func TestServiceImpl_Save(t *testing.T) {
 		}
 
 		service := NewService(mockRepo)
-		mockRepo.EXPECT().Save(n).Return(nil)
+		mockRepo.EXPECT().Save(n).Return(userID, nil)
 
-		err := service.Save(n)
+		id, err := service.Save(n)
+		assert.Equal(t, userID, id)
 		assert.NoError(t, err)
 	})
 
@@ -110,9 +111,9 @@ func TestServiceImpl_Save(t *testing.T) {
 		n := User{}
 
 		service := NewService(mockRepo)
-		mockRepo.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
+		mockRepo.EXPECT().Save(gomock.Any()).Return(uint(0), errors.New("some error"))
 
-		err := service.Save(n)
+		_, err := service.Save(n)
 		assert.Error(t, err)
 	})
 }

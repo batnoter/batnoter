@@ -28,18 +28,28 @@ func (u *UserHandler) Profile(c *gin.Context) {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
+	logrus.WithField("user-id", userID).Info("request for profile started")
 	dbUser, err := u.userService.Get(userID)
 	if err != nil {
 		abortRequestWithError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, UserResponsePayload{
+	userResp := UserResponsePayload{
 		Email:      dbUser.Email,
 		Name:       dbUser.Name,
 		Location:   dbUser.Location,
 		AvatarURL:  dbUser.AvatarURL,
 		DisabledAt: dbUser.DisabledAt,
-	})
+	}
+	if dbUser.DefaultRepo != nil {
+		userResp.DefaultRepo = &RepoPayload{
+			Name:          dbUser.DefaultRepo.Name,
+			Visibility:    dbUser.DefaultRepo.Visibility,
+			DefaultBranch: dbUser.DefaultRepo.DefaultBranch,
+		}
+	}
+	c.JSON(http.StatusOK, userResp)
+	logrus.WithField("user-id", userID).Info("request for profile successful")
 }
 
 func getUserIDFromContext(c *gin.Context) (uint, error) {

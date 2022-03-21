@@ -7,10 +7,10 @@ import (
 
 //go:generate mockgen -source=repo.go -package=user -destination=mock_repo.go
 type Repo interface {
-	Get(userId uint) (User, error)
+	Get(userID uint) (User, error)
 	GetByEmail(email string) (User, error)
-	Save(user User) error
-	Delete(userId uint) error
+	Save(user User) (uint, error)
+	Delete(userID uint) error
 }
 
 type repoImpl struct {
@@ -23,10 +23,10 @@ func NewRepository(db *gorm.DB) Repo {
 	}
 }
 
-func (r *repoImpl) Get(userId uint) (User, error) {
+func (r *repoImpl) Get(userID uint) (User, error) {
 	var user User
-	if err := r.db.Where("id = ?", userId).First(&user).Error; err != nil {
-		return user, errors.Wrap(err, "failed to retrieve user from database")
+	if err := r.db.Where("id = ?", userID).Preload("DefaultRepo").First(&user).Error; err != nil {
+		return user, errors.Wrap(err, "retrieving user from database failed")
 	}
 	return user, nil
 }
@@ -38,22 +38,22 @@ func (r *repoImpl) GetByEmail(email string) (User, error) {
 		return User{}, nil
 	}
 	if err != nil {
-		return user, errors.Wrap(err, "failed to retrieve user from database")
+		return user, errors.Wrap(err, "retrieving user from database failed")
 	}
 	return user, nil
 }
 
-func (r *repoImpl) Save(user User) error {
+func (r *repoImpl) Save(user User) (uint, error) {
 	if err := r.db.Save(&user).Error; err != nil {
-		return errors.Wrap(err, "failed to store user to database")
+		return 0, errors.Wrap(err, "storing user to database failed")
 	}
-	return nil
+	return user.ID, nil
 }
 
-func (r *repoImpl) Delete(userId uint) error {
+func (r *repoImpl) Delete(userID uint) error {
 	var user User
-	if err := r.db.Where("id = ?", userId).Delete(&user).Error; err != nil {
-		return errors.Wrap(err, "failed to delete user from database")
+	if err := r.db.Where("id = ?", userID).Delete(&user).Error; err != nil {
+		return errors.Wrap(err, "deleting user from database failed")
 	}
 	return nil
 }

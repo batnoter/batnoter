@@ -34,32 +34,32 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockRepo) Delete(userId uint) error {
+func (m *MockRepo) Delete(userID uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", userId)
+	ret := m.ctrl.Call(m, "Delete", userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockRepoMockRecorder) Delete(userId interface{}) *gomock.Call {
+func (mr *MockRepoMockRecorder) Delete(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepo)(nil).Delete), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepo)(nil).Delete), userID)
 }
 
 // Get mocks base method.
-func (m *MockRepo) Get(userId uint) (User, error) {
+func (m *MockRepo) Get(userID uint) (User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userId)
+	ret := m.ctrl.Call(m, "Get", userID)
 	ret0, _ := ret[0].(User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockRepoMockRecorder) Get(userId interface{}) *gomock.Call {
+func (mr *MockRepoMockRecorder) Get(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepo)(nil).Get), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepo)(nil).Get), userID)
 }
 
 // GetByEmail mocks base method.
@@ -78,11 +78,12 @@ func (mr *MockRepoMockRecorder) GetByEmail(email interface{}) *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockRepo) Save(user User) error {
+func (m *MockRepo) Save(user User) (uint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", user)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Save indicates an expected call of Save.

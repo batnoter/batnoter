@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	validation "github.com/go-ozzo/ozzo-validation"
 	gh "github.com/google/go-github/v43/github"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -16,12 +17,27 @@ import (
 	"golang.org/x/oauth2/github"
 )
 
+type RepoPayload struct {
+	Name          string `json:"name"`
+	Visibility    string `json:"visibility"`
+	DefaultBranch string `json:"default_branch"`
+}
+
+func (r RepoPayload) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.Name, validation.Required, validation.Length(1, 50)),
+		validation.Field(&r.Visibility, validation.Required, validation.Length(1, 20)),
+		validation.Field(&r.Visibility, validation.Length(0, 50)),
+	)
+}
+
 type UserResponsePayload struct {
-	Email      string     `json:"email"`
-	Name       string     `json:"name,omitempty"`
-	Location   string     `json:"location,omitempty"`
-	AvatarURL  string     `json:"avatar_url,omitempty"`
-	DisabledAt *time.Time `json:"disabled_at,omitempty"`
+	Email       string       `json:"email"`
+	Name        string       `json:"name,omitempty"`
+	Location    string       `json:"location,omitempty"`
+	AvatarURL   string       `json:"avatar_url,omitempty"`
+	DisabledAt  *time.Time   `json:"disabled_at,omitempty"`
+	DefaultRepo *RepoPayload `json:"default_repo,omitempty"`
 }
 
 type GithubHandler struct {
@@ -108,9 +124,14 @@ func (g *GithubHandler) GithubOAuth2Callback(c *gin.Context) {
 	mapUserAttributes(&dbUser, *githubUser.Email, string(githubTokenJSON), githubUser)
 
 	// create/update the user record
-	g.userService.Save(dbUser)
+	userID, err := g.userService.Save(dbUser)
+	if err != nil {
+		logrus.Errorf("saving user to db failed: %s", err.Error())
+		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
+		return
+	}
 
-	appToken, err := g.authService.GenerateToken(dbUser.ID)
+	appToken, err := g.authService.GenerateToken(userID)
 	if err != nil {
 		logrus.Errorf("token generation failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
@@ -131,25 +152,52 @@ func (g *GithubHandler) GithubUserRepos(c *gin.Context) {
 	if err != nil {
 		logrus.Errorf("retrieving user failed: %s", err.Error())
 		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 	token := dbUser.GithubToken
 	oauth2Token := oauth2.Token{}
 	if err := json.Unmarshal([]byte(token), &oauth2Token); err != nil {
 		logrus.Errorf("parsing user's github token failed: %s", err.Error())
 		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 	client := gh.NewClient(g.oauth2Config.Client(c, &oauth2Token))
 	repos, _, err := client.Repositories.List(c, "", nil)
 	if err != nil {
 		logrus.Errorf("retrieving user repos from github failed: %s", err.Error())
 		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if repos == nil {
+		c.JSON(http.StatusOK, []gh.Repository{})
 	}
 
-	c.JSON(http.StatusOK, repos)
+	repoResp := make([]RepoPayload, 0, len(repos))
+	for _, ghRepo := range repos {
+		repoPayload := mapRepoAttributes(ghRepo)
+		repoResp = append(repoResp, repoPayload)
+	}
+
+	c.JSON(http.StatusOK, repoResp)
+}
+
+func mapRepoAttributes(ghRepo *gh.Repository) RepoPayload {
+	repoPayload := RepoPayload{}
+	if ghRepo.Name != nil {
+		repoPayload.Name = *ghRepo.Name
+	}
+	if ghRepo.Visibility != nil {
+		repoPayload.Visibility = *ghRepo.Visibility
+	}
+	if ghRepo.DefaultBranch != nil {
+		repoPayload.DefaultBranch = *ghRepo.DefaultBranch
+	}
+	return repoPayload
 }
 
 func (g *GithubHandler) getUser(c *gin.Context) (user.User, error) {
 	userID, err := getUserIDFromContext(c)
+	logrus.Infof("context has user-id: %d", userID)
 	if err != nil {
 		logrus.Errorf("fetching user-id from context failed")
 		c.AbortWithStatus(http.StatusUnauthorized)

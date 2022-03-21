@@ -3,6 +3,7 @@ package user
 import (
 	"time"
 
+	"github.com/vivekweb2013/gitnoter/internal/preference"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,7 @@ type User struct {
 	GithubID       int64
 	GithubUsername string
 	GithubToken    string
+	DisabledAt     *time.Time
 
-	DisabledAt *time.Time
+	DefaultRepo *preference.DefaultRepo `gorm:"foreignkey:UserID"`
 }
