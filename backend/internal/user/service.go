@@ -2,10 +2,10 @@ package user
 
 //go:generate mockgen -source=service.go -package=user -destination=mock_service.go
 type Service interface {
-	Get(userId uint) (User, error)
+	Get(userID uint) (User, error)
 	GetByEmail(email string) (User, error)
-	Save(user User) error
-	Delete(userId uint) error
+	Save(user User) (uint, error)
+	Delete(userID uint) error
 }
 
 type serviceImpl struct {
@@ -18,8 +18,8 @@ func NewService(repo Repo) Service {
 	}
 }
 
-func (s *serviceImpl) Get(userId uint) (User, error) {
-	user, err := s.repo.Get(userId)
+func (s *serviceImpl) Get(userID uint) (User, error) {
+	user, err := s.repo.Get(userID)
 	if err != nil {
 		return user, err
 	}
@@ -34,15 +34,16 @@ func (s *serviceImpl) GetByEmail(email string) (User, error) {
 	return user, nil
 }
 
-func (s *serviceImpl) Save(user User) error {
-	if err := s.repo.Save(user); err != nil {
-		return err
+func (s *serviceImpl) Save(user User) (uint, error) {
+	userID, err := s.repo.Save(user)
+	if err != nil {
+		return 0, err
 	}
-	return nil
+	return userID, nil
 }
 
-func (s *serviceImpl) Delete(userId uint) error {
-	if err := s.repo.Delete(userId); err != nil {
+func (s *serviceImpl) Delete(userID uint) error {
+	if err := s.repo.Delete(userID); err != nil {
 		return err
 	}
 	return nil

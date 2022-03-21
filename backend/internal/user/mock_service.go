@@ -34,32 +34,32 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockService) Delete(userId uint) error {
+func (m *MockService) Delete(userID uint) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", userId)
+	ret := m.ctrl.Call(m, "Delete", userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockServiceMockRecorder) Delete(userId interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Delete(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockService)(nil).Delete), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockService)(nil).Delete), userID)
 }
 
 // Get mocks base method.
-func (m *MockService) Get(userId uint) (User, error) {
+func (m *MockService) Get(userID uint) (User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userId)
+	ret := m.ctrl.Call(m, "Get", userID)
 	ret0, _ := ret[0].(User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockServiceMockRecorder) Get(userId interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Get(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockService)(nil).Get), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockService)(nil).Get), userID)
 }
 
 // GetByEmail mocks base method.
@@ -78,11 +78,12 @@ func (mr *MockServiceMockRecorder) GetByEmail(email interface{}) *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockService) Save(user User) error {
+func (m *MockService) Save(user User) (uint, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", user)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Save indicates an expected call of Save.

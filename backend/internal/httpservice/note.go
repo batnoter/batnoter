@@ -43,13 +43,14 @@ func NewNoteHandler(noteService note.Service) *NoteHandler {
 }
 
 func (n *NoteHandler) GetAllNotes(c *gin.Context) {
-	logrus.Info("request to retrieve notes started")
 	userID, err := getUserIDFromContext(c)
 	if err != nil {
 		logrus.Errorf("fetching user-id from context failed")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
+
+	logrus.WithField("user-id", userID).Info("request to retrieve notes started")
 
 	notes, err := n.noteService.GetAll(userID)
 	if err != nil {
@@ -67,7 +68,7 @@ func (n *NoteHandler) GetAllNotes(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusOK, notesResp)
-	logrus.Info("request to retrieve notes successful")
+	logrus.WithField("user-id", userID).Info("request to retrieve notes successful")
 }
 
 func (n *NoteHandler) GetNote(c *gin.Context) {
