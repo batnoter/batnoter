@@ -34,7 +34,7 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockRepo) Delete(userId int) error {
+func (m *MockRepo) Delete(userId uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", userId)
 	ret0, _ := ret[0].(error)
@@ -48,7 +48,7 @@ func (mr *MockRepoMockRecorder) Delete(userId interface{}) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockRepo) Get(userId int) (User, error) {
+func (m *MockRepo) Get(userId uint) (User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", userId)
 	ret0, _ := ret[0].(User)

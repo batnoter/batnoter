@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
@@ -22,16 +23,17 @@ func TestProfile(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
 		handler := NewUserHandler(mockUserService)
-		mockUserService.EXPECT().GetByEmail(email).Return(user.User{
+		mockUserService.EXPECT().Get(userID).Return(user.User{
 			Email:      email,
 			Name:       name,
 			Location:   location,
 			AvatarURL:  avatarURL,
 			DisabledAt: nil,
 		}, nil)
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
 		// simulate auth middleware with custom handler
-		router.GET("/api/v1/user/me", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.Profile)
+		router.GET("/api/v1/user/me", func(c *gin.Context) { c.Set("claims", claims) }, handler.Profile)
 		response := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/api/v1/user/me", nil)
 
@@ -66,8 +68,8 @@ func TestProfile(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
 		handler := NewUserHandler(mockUserService)
-		mockUserService.EXPECT().GetByEmail(email).Return(user.User{}, errors.New("some error"))
-		claims := jwt.MapClaims{"sub": email}
+		mockUserService.EXPECT().Get(userID).Return(user.User{}, errors.New("some error"))
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
 		router.GET("/api/v1/user/me", func(c *gin.Context) { c.Set("claims", claims) }, handler.Profile)
 		response := httptest.NewRecorder()

@@ -7,7 +7,7 @@ import (
 
 //go:generate mockgen -source=repo.go -package=note -destination=mock_repo.go
 type Repo interface {
-	GetAll(email string) ([]Note, error)
+	GetAll(userID uint) ([]Note, error)
 	Get(noteId int) (Note, error)
 	Save(note Note) error
 	Delete(noteId int) error
@@ -23,10 +23,10 @@ func NewRepository(db *gorm.DB) Repo {
 	}
 }
 
-func (r *repoImpl) GetAll(email string) ([]Note, error) {
+func (r *repoImpl) GetAll(userID uint) ([]Note, error) {
 	var notes []Note
-	if err := r.db.Where("email = ?", email).Find(&notes).Error; err != nil {
-		return notes, errors.Wrap(err, "failed to retrieve notes from database")
+	if err := r.db.Where("user_id = ?", userID).Find(&notes).Error; err != nil {
+		return notes, errors.Wrap(err, "retrieving notes from database failed")
 	}
 	return notes, nil
 }
@@ -34,21 +34,21 @@ func (r *repoImpl) GetAll(email string) ([]Note, error) {
 func (r *repoImpl) Get(noteId int) (Note, error) {
 	var note Note
 	if err := r.db.Where("id = ?", noteId).First(&note).Error; err != nil {
-		return note, errors.Wrap(err, "failed to retrieve note from database")
+		return note, errors.Wrap(err, "retrieving note from database failed")
 	}
 	return note, nil
 }
 
 func (r *repoImpl) Save(note Note) error {
 	if err := r.db.Save(&note).Error; err != nil {
-		return errors.Wrap(err, "failed to store note to database")
+		return errors.Wrap(err, "storing note to database failed")
 	}
 	return nil
 }
 func (r *repoImpl) Delete(noteId int) error {
 	var note Note
 	if err := r.db.Where("id = ?", noteId).Delete(&note).Error; err != nil {
-		return errors.Wrap(err, "failed to delete note from database")
+		return errors.Wrap(err, "deleting note from database failed")
 	}
 	return nil
 }

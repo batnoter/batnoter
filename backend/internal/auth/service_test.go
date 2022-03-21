@@ -12,17 +12,17 @@ func TestLogin(t *testing.T) {
 			SecretKey: "key",
 			Issuer:    "test",
 		}
-		email := "john.doe@example.com"
+		userID := uint(1001)
 		service := NewService(tokenConfig)
 
-		_, err := service.GenerateToken(email)
+		_, err := service.GenerateToken(userID)
 		assert.NoError(t, err)
 	})
 }
 
 func TestValidateToken(t *testing.T) {
 	t.Run("should not return any error when token is valid", func(t *testing.T) {
-		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZXhwIjoxNjQ3Njg5Mjk0LCJpYXQiOjE2NDc0MzAwOTQsImlzcyI6InRlc3QifQ.M3AyWdoc6abmm8ZSTZkAyF7Y3l1pEGiPbrdlaFkVtfE"
+		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiIxMjM0IiwiZXhwIjoxOTE5ODg5Mjk0LCJpYXQiOjE2NDc0MzAwOTQsImlzcyI6InRlc3QifQ.te-HZfMijZQ-z2fMQSd5CUjGW8Yv0iRwtkmOdJPQ_i4"
 		tokenConfig := TokenConfig{
 			SecretKey: "key",
 			Issuer:    "test",

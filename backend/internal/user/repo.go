@@ -7,10 +7,10 @@ import (
 
 //go:generate mockgen -source=repo.go -package=user -destination=mock_repo.go
 type Repo interface {
-	Get(userId int) (User, error)
+	Get(userId uint) (User, error)
 	GetByEmail(email string) (User, error)
 	Save(user User) error
-	Delete(userId int) error
+	Delete(userId uint) error
 }
 
 type repoImpl struct {
@@ -23,7 +23,7 @@ func NewRepository(db *gorm.DB) Repo {
 	}
 }
 
-func (r *repoImpl) Get(userId int) (User, error) {
+func (r *repoImpl) Get(userId uint) (User, error) {
 	var user User
 	if err := r.db.Where("id = ?", userId).First(&user).Error; err != nil {
 		return user, errors.Wrap(err, "failed to retrieve user from database")
@@ -50,7 +50,7 @@ func (r *repoImpl) Save(user User) error {
 	return nil
 }
 
-func (r *repoImpl) Delete(userId int) error {
+func (r *repoImpl) Delete(userId uint) error {
 	var user User
 	if err := r.db.Where("id = ?", userId).Delete(&user).Error; err != nil {
 		return errors.Wrap(err, "failed to delete user from database")

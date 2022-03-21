@@ -40,7 +40,7 @@ func TestGetNote(t *testing.T) {
 				CreatedAt: time.Date(2022, 01, 15, 11, 41, 29, 0, time.UTC),
 				UpdatedAt: time.Date(2022, 01, 15, 11, 41, 29, 0, time.UTC),
 			},
-			Email:   email,
+			UserID:  userID,
 			Title:   title,
 			Content: content,
 		}
@@ -103,14 +103,15 @@ func TestCreateNote(t *testing.T) {
 		router := gin.Default()
 		gin.SetMode(gin.TestMode)
 		n := note.Note{
-			Email:   email,
+			UserID:  userID,
 			Title:   title,
 			Content: content,
 		}
 		mockService.EXPECT().Save(n).Return(nil)
 		handler := NewNoteHandler(mockService)
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
-		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.CreateNote)
+		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", claims) }, handler.CreateNote)
 		response := httptest.NewRecorder()
 		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(validNoteJson))
@@ -129,8 +130,9 @@ func TestCreateNote(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
-		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.CreateNote)
+		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", claims) }, handler.CreateNote)
 		response := httptest.NewRecorder()
 		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(validNoteJson))
@@ -149,10 +151,11 @@ func TestCreateNote(t *testing.T) {
 				defer ctrl.Finish()
 				mockService := note.NewMockService(ctrl)
 				handler := NewNoteHandler(mockService)
+				claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
 				router := gin.Default()
 				gin.SetMode(gin.TestMode)
-				router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.CreateNote)
+				router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", claims) }, handler.CreateNote)
 				response := httptest.NewRecorder()
 				req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(test.notePayloadJson))
 
@@ -176,14 +179,15 @@ func TestUpdateNote(t *testing.T) {
 			Model: gorm.Model{
 				ID: uint(noteId),
 			},
-			Email:   email,
+			UserID:  userID,
 			Title:   title,
 			Content: content,
 		}
 		mockService.EXPECT().Save(n).Return(nil)
 		handler := NewNoteHandler(mockService)
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
-		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
+		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
 		response := httptest.NewRecorder()
 		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(validNoteJson))
@@ -202,8 +206,9 @@ func TestUpdateNote(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
-		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
+		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
 		response := httptest.NewRecorder()
 		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(validNoteJson))
@@ -221,8 +226,9 @@ func TestUpdateNote(t *testing.T) {
 		router := gin.Default()
 		gin.SetMode(gin.TestMode)
 		handler := NewNoteHandler(mockService)
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
-		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
+		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
 		response := httptest.NewRecorder()
 		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPut, "/api/v1/note/abc", strings.NewReader(validNoteJson))
@@ -241,10 +247,11 @@ func TestUpdateNote(t *testing.T) {
 				defer ctrl.Finish()
 				mockService := note.NewMockService(ctrl)
 				handler := NewNoteHandler(mockService)
+				claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
 
 				router := gin.Default()
 				gin.SetMode(gin.TestMode)
-				router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
+				router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
 				response := httptest.NewRecorder()
 				req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(test.notePayloadJson))
 

@@ -34,7 +34,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockService) Delete(userId int) error {
+func (m *MockService) Delete(userId uint) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", userId)
 	ret0, _ := ret[0].(error)
@@ -48,7 +48,7 @@ func (mr *MockServiceMockRecorder) Delete(userId interface{}) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockService) Get(userId int) (User, error) {
+func (m *MockService) Get(userId uint) (User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", userId)
 	ret0, _ := ret[0].(User)

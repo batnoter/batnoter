@@ -4,7 +4,8 @@ create table if not exists notes
     created_at  timestamp without time zone default (now() at time zone 'utc'),
     updated_at  timestamp without time zone default (now() at time zone 'utc'),
     deleted_at  timestamp without time zone default null,
-    email       varchar(255) not null,
+    user_id     integer not null,
     title       varchar(255) not null,
-    content     text not null
+    content     text not null,
+    constraint fk_user foreign key(user_id) references users(id)
 );

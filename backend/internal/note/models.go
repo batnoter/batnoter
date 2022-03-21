@@ -6,7 +6,7 @@ import (
 
 type Note struct {
 	gorm.Model
-	Email   string
+	UserID  uint
 	Title   string
 	Content string
 }
