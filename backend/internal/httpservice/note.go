@@ -58,7 +58,6 @@ func (n *NoteHandler) GetAllNotes(c *gin.Context) {
 		abortRequestWithError(c, err)
 		return
 	}
-	logrus.Infof("total notes retrieved from db: &d", len(notes))
 	notesResp := make([]NoteResponsePayload, 0, len(notes))
 	for _, note := range notes {
 		notesResp = append(notesResp, NoteResponsePayload{

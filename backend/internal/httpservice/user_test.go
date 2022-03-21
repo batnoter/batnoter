@@ -10,31 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/vivekweb2013/gitnoter/internal/config"
 	"github.com/vivekweb2013/gitnoter/internal/user"
 )
-
-const (
-	email     = "john.doe@example.com"
-	name      = "John Doe"
-	location  = "New York"
-	avatarURL = "http://example.com/avatar"
-)
-
-func TestGithubLogin(t *testing.T) {
-	t.Run("should redirect to provider when the github login request is valid", func(t *testing.T) {
-		gin.SetMode(gin.TestMode)
-		router := gin.Default()
-		handler := NewAuthHandler(nil, nil, config.OAuth2{})
-
-		router.GET("/api/v1/oauth2/login/github", handler.GithubLogin)
-		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/api/v1/oauth2/login/github", nil)
-
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusTemporaryRedirect, response.Code)
-	})
-}
 
 func TestProfile(t *testing.T) {
 	t.Run("should get user profile when the request is valid", func(t *testing.T) {
@@ -44,8 +21,7 @@ func TestProfile(t *testing.T) {
 
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
-		handler := NewAuthHandler(nil, mockUserService, config.OAuth2{})
-		claims := jwt.MapClaims{"sub": email}
+		handler := NewUserHandler(mockUserService)
 		mockUserService.EXPECT().GetByEmail(email).Return(user.User{
 			Email:      email,
 			Name:       name,
@@ -55,7 +31,7 @@ func TestProfile(t *testing.T) {
 		}, nil)
 
 		// simulate auth middleware with custom handler
-		router.GET("/api/v1/user/me", func(c *gin.Context) { c.Set("claims", claims) }, handler.Profile)
+		router.GET("/api/v1/user/me", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.Profile)
 		response := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/api/v1/user/me", nil)
 
@@ -71,7 +47,7 @@ func TestProfile(t *testing.T) {
 
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
-		handler := NewAuthHandler(nil, mockUserService, config.OAuth2{})
+		handler := NewUserHandler(mockUserService)
 
 		router.GET("/api/v1/user/me", handler.Profile)
 		response := httptest.NewRecorder()
@@ -89,7 +65,7 @@ func TestProfile(t *testing.T) {
 
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
-		handler := NewAuthHandler(nil, mockUserService, config.OAuth2{})
+		handler := NewUserHandler(mockUserService)
 		mockUserService.EXPECT().GetByEmail(email).Return(user.User{}, errors.New("some error"))
 		claims := jwt.MapClaims{"sub": email}
 
