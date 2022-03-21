@@ -1,6 +1,8 @@
 package httpservice
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -24,13 +26,13 @@ type UserResponsePayload struct {
 	DisabledAt *time.Time `json:"disabled_at,omitempty"`
 }
 
-type AuthHandler struct {
+type GithubHandler struct {
 	authService  auth.Service
 	userService  user.Service
 	oauth2Config oauth2.Config
 }
 
-func NewAuthHandler(authService auth.Service, userService user.Service, config config.OAuth2) *AuthHandler {
+func NewGithubHandler(authService auth.Service, userService user.Service, config config.OAuth2) *GithubHandler {
 	oauth2Config := oauth2.Config{
 		RedirectURL:  config.Github.RedirectURL,
 		ClientID:     config.Github.ClientID,
@@ -38,27 +40,27 @@ func NewAuthHandler(authService auth.Service, userService user.Service, config c
 		Scopes:       []string{"read:user", "user:email", "repo"},
 		Endpoint:     github.Endpoint,
 	}
-	return &AuthHandler{
+	return &GithubHandler{
 		authService:  authService,
 		userService:  userService,
 		oauth2Config: oauth2Config,
 	}
 }
 
-func (a *AuthHandler) GithubLogin(c *gin.Context) {
+func (g *GithubHandler) GithubLogin(c *gin.Context) {
 	state := uuid.NewString()
 	c.SetCookie("state", state, 600, "/", "", true, true)
 
 	// AuthCodeURL receive state that is a token to protect the user from CSRF attacks.
 	// Generate a random `state` string and validate that it matches the `state` query parameter
 	// on redirect callback
-	url := a.oauth2Config.AuthCodeURL(state)
+	url := g.oauth2Config.AuthCodeURL(state)
 
 	// trigger authorization code grant flow
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
+func (g *GithubHandler) GithubOAuth2Callback(c *gin.Context) {
 	logrus.Info("github oauth2 callback started")
 	state, _ := c.Cookie("state")
 	stateFromCallback := c.Query("state")
@@ -71,14 +73,14 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 		return
 	}
 
-	githubToken, err := a.oauth2Config.Exchange(c, code)
+	githubToken, err := g.oauth2Config.Exchange(c, code)
 	if err != nil {
 		logrus.Errorf("auth code exchange for token failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
 		return
 	}
 
-	client := gh.NewClient(a.oauth2Config.Client(c, githubToken))
+	client := gh.NewClient(g.oauth2Config.Client(c, githubToken))
 
 	githubUser, _, err := client.Users.Get(c, "")
 	if err != nil {
@@ -93,18 +95,24 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 	}
 
 	// check if user record already exist
-	dbUser, err := a.userService.GetByEmail(*githubUser.Email)
+	dbUser, err := g.userService.GetByEmail(*githubUser.Email)
 	if err != nil {
 		logrus.Errorf("retrieving user from db using email failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
 		return
 	}
-	mapUserAttributes(&dbUser, *githubUser.Email, githubToken.AccessToken, githubUser)
+	githubTokenJSON, err := json.Marshal(githubToken)
+	if err != nil {
+		logrus.Errorf("converting github token to json failed: %s", err.Error())
+		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
+		return
+	}
+	mapUserAttributes(&dbUser, *githubUser.Email, string(githubTokenJSON), githubUser)
 
 	// create/update the user record
-	a.userService.Save(dbUser)
+	g.userService.Save(dbUser)
 
-	appToken, err := a.authService.GenerateToken(dbUser.Email)
+	appToken, err := g.authService.GenerateToken(dbUser.Email)
 	if err != nil {
 		logrus.Errorf("token generation failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
@@ -120,26 +128,36 @@ func (a *AuthHandler) GithubOAuth2Callback(c *gin.Context) {
 	logrus.Info("github oauth2 callback finished")
 }
 
-func (a *AuthHandler) Profile(c *gin.Context) {
+func (g *GithubHandler) GithubUserRepos(c *gin.Context) {
+	dbUser, err := g.getUser(c)
+	if err != nil {
+		logrus.Errorf("retrieving user failed: %s", err.Error())
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+	token := dbUser.GithubToken
+	oauth2Token := oauth2.Token{}
+	if err := json.Unmarshal([]byte(token), &oauth2Token); err != nil {
+		logrus.Errorf("parsing user's github token failed: %s", err.Error())
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+	client := gh.NewClient(g.oauth2Config.Client(c, &oauth2Token))
+	repos, _, err := client.Repositories.List(c, "", nil)
+	if err != nil {
+		logrus.Errorf("retrieving user repos from github failed: %s", err.Error())
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+
+	c.JSON(http.StatusOK, repos)
+}
+
+func (g *GithubHandler) getUser(c *gin.Context) (user.User, error) {
 	claims, _ := c.Get("claims")
 	if claims == nil {
-		logrus.Errorf("failed to get claims from context")
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
+		return user.User{}, errors.New("fetching claims from context failed")
 	}
 	email := claims.(jwt.MapClaims)["sub"].(string)
-	u, err := a.userService.GetByEmail(email)
-	if err != nil {
-		abortRequestWithError(c, err)
-		return
-	}
-	c.JSON(http.StatusOK, UserResponsePayload{
-		Email:      u.Email,
-		Name:       u.Name,
-		Location:   u.Location,
-		AvatarURL:  u.AvatarURL,
-		DisabledAt: u.DisabledAt,
-	})
+	dbUser, err := g.userService.GetByEmail(email)
+	return dbUser, err
 }
 
 func mapUserAttributes(dbUser *user.User, email string, githubToken string, githubUser *gh.User) {

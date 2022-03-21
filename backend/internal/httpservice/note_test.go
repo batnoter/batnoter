@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +53,7 @@ func TestGetNote(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
-		assert.JSONEq(t, fmt.Sprintf(`{"id":123, "created_at":"2022-01-15T11:41:29Z", "updated_at":"2022-01-15T11:41:29Z", "email":"%s", "title":"%s", "content":"%s"}`, email, title, content), response.Body.String())
+		assert.JSONEq(t, fmt.Sprintf(`{"id":123, "created_at":"2022-01-15T11:41:29Z", "updated_at":"2022-01-15T11:41:29Z", "title":"%s", "content":"%s"}`, title, content), response.Body.String())
 	})
 
 	t.Run("should return internal server error when retrieving a note fails", func(t *testing.T) {
@@ -109,9 +110,9 @@ func TestCreateNote(t *testing.T) {
 		mockService.EXPECT().Save(n).Return(nil)
 		handler := NewNoteHandler(mockService)
 
-		router.POST("/api/v1/note", handler.CreateNote)
+		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.CreateNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(email, title, content)
+		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(validNoteJson))
 
 		router.ServeHTTP(response, req)
@@ -129,9 +130,9 @@ func TestCreateNote(t *testing.T) {
 		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
 
-		router.POST("/api/v1/note", handler.CreateNote)
+		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.CreateNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(email, title, content)
+		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(validNoteJson))
 
 		router.ServeHTTP(response, req)
@@ -151,7 +152,7 @@ func TestCreateNote(t *testing.T) {
 
 				router := gin.Default()
 				gin.SetMode(gin.TestMode)
-				router.POST("/api/v1/note", handler.CreateNote)
+				router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.CreateNote)
 				response := httptest.NewRecorder()
 				req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(test.notePayloadJson))
 
@@ -182,9 +183,9 @@ func TestUpdateNote(t *testing.T) {
 		mockService.EXPECT().Save(n).Return(nil)
 		handler := NewNoteHandler(mockService)
 
-		router.PUT("/api/v1/note/:id", handler.UpdateNote)
+		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(email, title, content)
+		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(validNoteJson))
 
 		router.ServeHTTP(response, req)
@@ -202,9 +203,9 @@ func TestUpdateNote(t *testing.T) {
 		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockService)
 
-		router.PUT("/api/v1/note/:id", handler.UpdateNote)
+		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(email, title, content)
+		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(validNoteJson))
 
 		router.ServeHTTP(response, req)
@@ -221,9 +222,9 @@ func TestUpdateNote(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		handler := NewNoteHandler(mockService)
 
-		router.PUT("/api/v1/note/:id", handler.UpdateNote)
+		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(email, title, content)
+		validNoteJson := getNotePayloadJsonString(title, content)
 		req, _ := http.NewRequest(http.MethodPut, "/api/v1/note/abc", strings.NewReader(validNoteJson))
 
 		router.ServeHTTP(response, req)
@@ -243,7 +244,7 @@ func TestUpdateNote(t *testing.T) {
 
 				router := gin.Default()
 				gin.SetMode(gin.TestMode)
-				router.PUT("/api/v1/note/:id", handler.UpdateNote)
+				router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", jwt.MapClaims{"sub": email}) }, handler.UpdateNote)
 				response := httptest.NewRecorder()
 				req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(test.notePayloadJson))
 
@@ -323,40 +324,30 @@ func getNotePayloadValidations() []struct {
 		expectedResponse string
 	}{
 		{
-			name:             "with blank email",
-			notePayloadJson:  getNotePayloadJsonString("", title, content),
-			expectedResponse: `{"code":"validation_failed", "message":"email: cannot be blank."}`,
-		},
-		{
-			name:             "with invalid email",
-			notePayloadJson:  getNotePayloadJsonString("test", title, content),
-			expectedResponse: `{"code":"validation_failed", "message":"email: must be a valid email address."}`,
-		},
-		{
 			name:             "with blank title",
-			notePayloadJson:  getNotePayloadJsonString(email, "", content),
+			notePayloadJson:  getNotePayloadJsonString("", content),
 			expectedResponse: `{"code":"validation_failed", "message":"title: cannot be blank."}`,
 		},
 		{
 			name:             "with title length more than 255 chars",
-			notePayloadJson:  getNotePayloadJsonString(email, randString(256), content),
+			notePayloadJson:  getNotePayloadJsonString(randString(256), content),
 			expectedResponse: `{"code":"validation_failed", "message":"title: the length must be between 1 and 255."}`,
 		},
 		{
 			name:             "with blank content",
-			notePayloadJson:  getNotePayloadJsonString(email, title, ""),
+			notePayloadJson:  getNotePayloadJsonString(title, ""),
 			expectedResponse: `{"code":"validation_failed", "message":"content: cannot be blank."}`,
 		},
 		{
 			name:             "with content length more than 5000 chars",
-			notePayloadJson:  getNotePayloadJsonString(email, title, randString(5001)),
+			notePayloadJson:  getNotePayloadJsonString(title, randString(5001)),
 			expectedResponse: `{"code":"validation_failed", "message":"content: the length must be between 1 and 5000."}`,
 		},
 	}
 }
 
-func getNotePayloadJsonString(email string, title string, content string) string {
-	return fmt.Sprintf(`{"email":"%s", "title":"%s", "content":"%s"}`, email, title, content)
+func getNotePayloadJsonString(title string, content string) string {
+	return fmt.Sprintf(`{"title":"%s", "content":"%s"}`, title, content)
 }
 
 func randString(n int) string {
