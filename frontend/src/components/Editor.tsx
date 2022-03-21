@@ -48,7 +48,6 @@ const Editor = () => {
           onChange={(e) => setTitle(e.target.value)}
           label="Note Title"
           variant="outlined"
-          color="secondary"
           fullWidth
           required
           error={titleError}
@@ -57,7 +56,6 @@ const Editor = () => {
           onChange={(e) => setContent(e.target.value)}
           label="Content"
           variant="outlined"
-          color="secondary"
           multiline
           rows={4}
           fullWidth
@@ -67,7 +65,6 @@ const Editor = () => {
 
         <Button
           type="submit"
-          color="secondary"
           variant="contained"
           endIcon={<KeyboardArrowRightIcon />}>
           Submit
