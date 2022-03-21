@@ -21,11 +21,6 @@ const Main = () => {
   useEffect(() => {
     dispatch(getUserProfileAsync())
   }, [])
-
-  const [open, setOpen] = React.useState(true);
-  const toggleDrawer = (open: boolean) => {
-    setOpen(!open);
-  };
   const handleLogout = () => {
     dispatch(userLogout())
   }
@@ -36,7 +31,7 @@ const Main = () => {
   }
 
   useEffect(() => {
-    if(userStatus == UserStatus.IDLE && user != null){
+    if (userStatus == UserStatus.IDLE && user != null) {
       dispatch(getAllNotesAsync())
     }
   }, [userStatus, user])
@@ -45,8 +40,8 @@ const Main = () => {
     <ThemeProvider theme={createTheme()}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user} isOpen={open} toggleDrawer={toggleDrawer} />
-        <AppDrawer user={user} isOpen={open} toggleDrawer={toggleDrawer} />
+        <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user}/>
+        <AppDrawer user={user} />
         <Box component="main" sx={{
           backgroundColor: (theme) => theme.palette.mode === 'light'
             ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',

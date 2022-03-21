@@ -21,7 +21,7 @@ const Finder = () => {
 
   return (
     <Container>
-      <Masonry columns={{ xs: 1, sm: 3, xl: 4 }} spacing={2}>
+      <Masonry columns={{ xs: 1, md: 3, xl: 4 }} spacing={2}>
         {notes.map(note => (
           <div key={note.id}>
             <NoteCard note={note} handleDelete={handleDelete} />
