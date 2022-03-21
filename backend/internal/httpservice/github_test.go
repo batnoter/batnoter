@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	userID    = uint(1012)
 	email     = "john.doe@example.com"
 	name      = "John Doe"
 	location  = "New York"

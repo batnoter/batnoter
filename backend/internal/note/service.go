@@ -2,7 +2,7 @@ package note
 
 //go:generate mockgen -source=service.go -package=note -destination=mock_service.go
 type Service interface {
-	GetAll(email string) ([]Note, error)
+	GetAll(userID uint) ([]Note, error)
 	Get(noteId int) (Note, error)
 	Save(note Note) error
 	Delete(noteId int) error
@@ -18,8 +18,8 @@ func NewService(repo Repo) Service {
 	}
 }
 
-func (s *serviceImpl) GetAll(email string) ([]Note, error) {
-	notes, err := s.repo.GetAll(email)
+func (s *serviceImpl) GetAll(userID uint) ([]Note, error) {
+	notes, err := s.repo.GetAll(userID)
 	if err != nil {
 		return notes, err
 	}

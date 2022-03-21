@@ -1,7 +1,9 @@
 package httpservice
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -20,14 +22,13 @@ func NewUserHandler(userService user.Service) *UserHandler {
 }
 
 func (u *UserHandler) Profile(c *gin.Context) {
-	claims, _ := c.Get("claims")
-	if claims == nil {
-		logrus.Errorf("failed to get claims from context")
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		logrus.Errorf("fetching user-id from context failed")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
-	email := claims.(jwt.MapClaims)["sub"].(string)
-	dbUser, err := u.userService.GetByEmail(email)
+	dbUser, err := u.userService.Get(userID)
 	if err != nil {
 		abortRequestWithError(c, err)
 		return
@@ -39,4 +40,17 @@ func (u *UserHandler) Profile(c *gin.Context) {
 		AvatarURL:  dbUser.AvatarURL,
 		DisabledAt: dbUser.DisabledAt,
 	})
+}
+
+func getUserIDFromContext(c *gin.Context) (uint, error) {
+	claims, _ := c.Get("claims")
+	if claims == nil {
+		return 0, errors.New("fatching claims from context failed")
+	}
+	userIDString := claims.(jwt.MapClaims)["sub"].(string)
+	userID, err := strconv.ParseUint(userIDString, 10, 64)
+	if err != nil {
+		return 0, errors.New("parsing user-id from token failed")
+	}
+	return uint(userID), nil
 }

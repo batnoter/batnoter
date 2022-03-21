@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -9,7 +10,7 @@ import (
 
 //go:generate mockgen -source=service.go -package=auth -destination=mock_service.go
 type Service interface {
-	GenerateToken(email string) (string, error)
+	GenerateToken(userID uint) (string, error)
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
@@ -28,9 +29,9 @@ func NewService(tokenConfig TokenConfig) Service {
 	}
 }
 
-func (s *serviceImpl) GenerateToken(email string) (string, error) {
+func (s *serviceImpl) GenerateToken(userID uint) (string, error) {
 	claims := jwt.StandardClaims{
-		Subject:   email,
+		Subject:   strconv.FormatUint(uint64(userID), 10),
 		ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
 		Issuer:    s.tokenConfig.Issuer,
 		IssuedAt:  time.Now().Unix(),

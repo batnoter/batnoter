@@ -2,11 +2,9 @@ package httpservice
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	gh "github.com/google/go-github/v43/github"
 	"github.com/google/uuid"
@@ -112,7 +110,7 @@ func (g *GithubHandler) GithubOAuth2Callback(c *gin.Context) {
 	// create/update the user record
 	g.userService.Save(dbUser)
 
-	appToken, err := g.authService.GenerateToken(dbUser.Email)
+	appToken, err := g.authService.GenerateToken(dbUser.ID)
 	if err != nil {
 		logrus.Errorf("token generation failed: %s", err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, failRedirectPath)
@@ -151,12 +149,13 @@ func (g *GithubHandler) GithubUserRepos(c *gin.Context) {
 }
 
 func (g *GithubHandler) getUser(c *gin.Context) (user.User, error) {
-	claims, _ := c.Get("claims")
-	if claims == nil {
-		return user.User{}, errors.New("fetching claims from context failed")
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		logrus.Errorf("fetching user-id from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return user.User{}, err
 	}
-	email := claims.(jwt.MapClaims)["sub"].(string)
-	dbUser, err := g.userService.GetByEmail(email)
+	dbUser, err := g.userService.Get(userID)
 	return dbUser, err
 }
 

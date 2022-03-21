@@ -63,18 +63,18 @@ func (mr *MockServiceMockRecorder) Get(noteId interface{}) *gomock.Call {
 }
 
 // GetAll mocks base method.
-func (m *MockService) GetAll(email string) ([]Note, error) {
+func (m *MockService) GetAll(userID uint) ([]Note, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", email)
+	ret := m.ctrl.Call(m, "GetAll", userID)
 	ret0, _ := ret[0].([]Note)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockServiceMockRecorder) GetAll(email interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetAll(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockService)(nil).GetAll), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockService)(nil).GetAll), userID)
 }
 
 // Save mocks base method.

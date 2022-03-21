@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	noteId = 123
+	userID = uint(1234)
+	noteID = 123
 )
 
 func TestServiceImpl_Get(t *testing.T) {
@@ -22,9 +23,9 @@ func TestServiceImpl_Get(t *testing.T) {
 		n := Note{}
 
 		service := NewService(mockRepo)
-		mockRepo.EXPECT().Get(noteId).Return(n, nil)
+		mockRepo.EXPECT().Get(noteID).Return(n, nil)
 
-		_, err := service.Get(noteId)
+		_, err := service.Get(noteID)
 		assert.NoError(t, err)
 	})
 
@@ -37,7 +38,7 @@ func TestServiceImpl_Get(t *testing.T) {
 		service := NewService(mockRepo)
 		mockRepo.EXPECT().Get(gomock.Any()).Return(n, errors.New("some error"))
 
-		_, err := service.Get(noteId)
+		_, err := service.Get(noteID)
 		assert.Error(t, err)
 	})
 }
@@ -57,7 +58,7 @@ func TestServiceImpl_Save(t *testing.T) {
 					Valid: false,
 				},
 			},
-			Email:   "test@example.com",
+			UserID:  userID,
 			Title:   "Sample Note",
 			Content: "This is a sample note",
 		}
@@ -90,9 +91,9 @@ func TestServiceImpl_Delete(t *testing.T) {
 		mockRepo := NewMockRepo(ctrl)
 
 		service := NewService(mockRepo)
-		mockRepo.EXPECT().Delete(noteId).Return(nil)
+		mockRepo.EXPECT().Delete(noteID).Return(nil)
 
-		err := service.Delete(noteId)
+		err := service.Delete(noteID)
 		assert.NoError(t, err)
 	})
 
@@ -104,7 +105,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 		service := NewService(mockRepo)
 		mockRepo.EXPECT().Delete(gomock.Any()).Return(errors.New("some error"))
 
-		err := service.Delete(noteId)
+		err := service.Delete(noteID)
 		assert.Error(t, err)
 	})
 }

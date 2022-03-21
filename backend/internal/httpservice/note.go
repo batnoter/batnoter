@@ -1,13 +1,11 @@
 package httpservice
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
@@ -46,14 +44,14 @@ func NewNoteHandler(noteService note.Service) *NoteHandler {
 
 func (n *NoteHandler) GetAllNotes(c *gin.Context) {
 	logrus.Info("request to retrieve notes started")
-	email, err := getEmailFromContext(c)
+	userID, err := getUserIDFromContext(c)
 	if err != nil {
-		logrus.Error("getting email from context failed")
+		logrus.Errorf("fetching user-id from context failed")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	notes, err := n.noteService.GetAll(email)
+	notes, err := n.noteService.GetAll(userID)
 	if err != nil {
 		abortRequestWithError(c, err)
 		return
@@ -104,14 +102,14 @@ func (n *NoteHandler) CreateNote(c *gin.Context) {
 		return
 	}
 	logrus.Info("request to create note")
-	email, err := getEmailFromContext(c)
+	userID, err := getUserIDFromContext(c)
 	if err != nil {
-		logrus.Error("getting email from context failed")
+		logrus.Errorf("fetching user-id from context failed")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 	note := note.Note{
-		Email:   email,
+		UserID:  userID,
 		Title:   noteReqPayload.Title,
 		Content: noteReqPayload.Content,
 	}
@@ -137,9 +135,9 @@ func (n *NoteHandler) UpdateNote(c *gin.Context) {
 		return
 	}
 	logrus.WithField("note_id", noteId).Info("request to update note")
-	email, err := getEmailFromContext(c)
+	userID, err := getUserIDFromContext(c)
 	if err != nil {
-		logrus.Error("getting email from context failed")
+		logrus.Errorf("fetching user-id from context failed")
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -147,7 +145,7 @@ func (n *NoteHandler) UpdateNote(c *gin.Context) {
 		Model: gorm.Model{
 			ID: uint(noteId),
 		},
-		Email:   email,
+		UserID:  userID,
 		Title:   noteReqPayload.Title,
 		Content: noteReqPayload.Content,
 	}
@@ -174,13 +172,4 @@ func (n *NoteHandler) DeleteNote(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 	logrus.WithField("note_id", id).Info("request to delete note successful")
-}
-
-func getEmailFromContext(c *gin.Context) (string, error) {
-	claims, _ := c.Get("claims")
-	if claims == nil {
-		return "", errors.New("failed to get claims from context")
-	}
-	email := claims.(jwt.MapClaims)["sub"].(string)
-	return email, nil
 }
