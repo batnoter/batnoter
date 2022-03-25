@@ -1,263 +1,344 @@
 package httpservice
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/vivekweb2013/gitnoter/internal/note"
+	"github.com/vivekweb2013/gitnoter/internal/github"
+	"github.com/vivekweb2013/gitnoter/internal/preference"
+	"github.com/vivekweb2013/gitnoter/internal/user"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
 const (
-	noteId                = 123
-	title                 = "Sample Note"
-	content               = "This is a sample note!"
+	sha                   = "5ab2f8a4323abafb10abb68657d9d39f1a775057"
+	content               = "Hello"
+	size                  = 5
+	notePath              = "foo/bar.md"
+	repository            = "testrepo"
+	visibility            = "private"
+	owner                 = "johndoe"
+	branch                = "main"
+	authorName            = "john doe"
+	authorEmail           = "john.doe@example.com"
+	searchQuery           = "birthday"
+	pageNumber            = 2
+	token                 = "token"
 	internalServerErrJson = `{"code":"internal_server_error", "message":"something went wrong. contact support"}`
 )
+
+func TestGetRepos(t *testing.T) {
+	t.Run("should return repos when the request is valid", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
+
+		router := getRouter()
+		u := validUser()
+		repos := []github.GitRepo{{
+			Name:          repository,
+			Visibility:    visibility,
+			DefaultBranch: branch,
+		}, {
+			Name:          repository + "2",
+			Visibility:    visibility,
+			DefaultBranch: branch + "2",
+		}}
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().GetRepos(gomock.Any(), getOAuth2Token(u.GithubToken)).Return(repos, nil)
+		handler := NewNoteHandler(mockGithubService, mockUserService)
+
+		router.GET("/api/v1/user/github/repo", getClaimsHandler(), handler.GetRepos)
+		response := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/user/github/repo", nil)
+
+		router.ServeHTTP(response, req)
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.JSONEq(t, `[{"default_branch":"main", "name":"testrepo", "visibility":"private"},{"default_branch":"main2", "name":"testrepo2", "visibility":"private"}]`, response.Body.String())
+	})
+
+	t.Run("should return internal server error fatching repos fails", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
+
+		router := getRouter()
+		u := validUser()
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().GetRepos(gomock.Any(), getOAuth2Token(u.GithubToken)).Return([]github.GitRepo{}, errors.New("some error"))
+		handler := NewNoteHandler(mockGithubService, mockUserService)
+
+		router.GET("/api/v1/user/github/repo", getClaimsHandler(), handler.GetRepos)
+		response := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/user/github/repo", nil)
+
+		router.ServeHTTP(response, req)
+		assert.Equal(t, http.StatusInternalServerError, response.Code)
+		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+	})
+}
+
+func TestSearchNotes(t *testing.T) {
+	t.Run("should return notes when the search request is valid", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
+
+		router := getRouter()
+		u := validUser()
+		fp := github.GitFileProps{SHA: "", Path: notePath, Content: "", AuthorName: authorName, AuthorEmail: authorEmail, RepoDetails: github.GitRepoProps{Repository: repository, DefaultBranch: branch, Owner: owner}}
+		gitFiles := []github.GitFile{{
+			SHA:     sha,
+			Path:    notePath,
+			Content: content,
+			Size:    size,
+			IsDir:   false,
+		}}
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().SearchFiles(gomock.Any(), getOAuth2Token(u.GithubToken), fp, searchQuery, pageNumber).Return(gitFiles, 1, nil)
+		handler := NewNoteHandler(mockGithubService, mockUserService)
+
+		router.GET("/api/v1/note", getClaimsHandler(), handler.SearchNotes)
+		response := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note?path=%s&query=%s&page=%d", notePath, searchQuery, pageNumber), nil)
+
+		router.ServeHTTP(response, req)
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.JSONEq(t, `{"notes":[{"content":"Hello", "is_dir":false, "path":"foo/bar.md", "sha":"5ab2f8a4323abafb10abb68657d9d39f1a775057", "size":5}], "total":1}`, response.Body.String())
+	})
+
+	t.Run("should return internal server error when the search fails", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
+
+		router := getRouter()
+		u := validUser()
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().SearchFiles(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]github.GitFile{}, 0, errors.New("some error"))
+		handler := NewNoteHandler(mockGithubService, mockUserService)
+
+		router.GET("/api/v1/note", getClaimsHandler(), handler.SearchNotes)
+		response := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note?path=%s&query=%s&page=%d", notePath, searchQuery, pageNumber), nil)
+
+		router.ServeHTTP(response, req)
+		assert.Equal(t, http.StatusInternalServerError, response.Code)
+		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+	})
+}
 
 func TestGetNote(t *testing.T) {
 	t.Run("should return a note when the get request is valid", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		n := note.Note{
-			Model: gorm.Model{
-				ID:        uint(noteId),
-				CreatedAt: time.Date(2022, 01, 15, 11, 41, 29, 0, time.UTC),
-				UpdatedAt: time.Date(2022, 01, 15, 11, 41, 29, 0, time.UTC),
-			},
-			UserID:  userID,
-			Title:   title,
-			Content: content,
-		}
-		mockService.EXPECT().Get(noteId).Return(n, nil)
-		handler := NewNoteHandler(mockService)
+		router := getRouter()
+		u := validUser()
+		fp := github.GitFileProps{SHA: "", Path: notePath, Content: "", AuthorName: authorName, AuthorEmail: authorEmail, RepoDetails: github.GitRepoProps{Repository: repository, DefaultBranch: branch, Owner: owner}}
+		f := validGitFile()
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().GetFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(f, nil)
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.GET("/api/v1/note/:id", handler.GetNote)
+		router.GET("/api/v1/note/:path", getClaimsHandler(), handler.GetNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), nil)
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
-		assert.JSONEq(t, fmt.Sprintf(`{"id":123, "created_at":"2022-01-15T11:41:29Z", "updated_at":"2022-01-15T11:41:29Z", "title":"%s", "content":"%s"}`, title, content), response.Body.String())
+		assert.JSONEq(t, fmt.Sprintf(`{"content":"%s", "is_dir":%t, "path":"%s", "sha":"%s", "size":%d}`, f.Content, f.IsDir, f.Path, f.SHA, f.Size), response.Body.String())
 	})
 
-	t.Run("should return internal server error when retrieving a note fails", func(t *testing.T) {
+	t.Run("should return error when retrieving a note fails due to missing user", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		n := note.Note{}
-		mockService.EXPECT().Get(noteId).Return(n, errors.New("some error"))
-		handler := NewNoteHandler(mockService)
+		router := getRouter()
+		mockUserService.EXPECT().Get(gomock.Any()).Return(user.User{}, errors.New("some error"))
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.GET("/api/v1/note/:id", handler.GetNote)
+		router.GET("/api/v1/note/:path", getClaimsHandler(), handler.GetNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), nil)
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), nil)
 
 		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
-	})
-
-	t.Run("should return bad request error when note id param is invalid", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
-		handler := NewNoteHandler(mockService)
-
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		router.GET("/api/v1/note/:id", handler.GetNote)
-		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", "abc"), nil)
-
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusBadRequest, response.Code)
-		assert.JSONEq(t, `{"code": "validation_failed", "message": "id: must be an integer number"}`, response.Body.String())
-	})
-}
-
-func TestCreateNote(t *testing.T) {
-	t.Run("should create a note when the create request is valid", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
-
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		n := note.Note{
-			UserID:  userID,
-			Title:   title,
-			Content: content,
-		}
-		mockService.EXPECT().Save(n).Return(nil)
-		handler := NewNoteHandler(mockService)
-		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
-
-		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", claims) }, handler.CreateNote)
-		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(title, content)
-		req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(validNoteJson))
-
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Equal(t, http.StatusUnauthorized, response.Code)
 		assert.Equal(t, "", response.Body.String())
 	})
 
-	t.Run("should return internal server error when creating a note fails", func(t *testing.T) {
+	t.Run("should return error when retrieving a note fails", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
-		handler := NewNoteHandler(mockService)
-		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
+		router := getRouter()
+		u := validUser()
+		mockUserService.EXPECT().Get(gomock.Any()).Return(u, nil)
+		mockGithubService.EXPECT().GetFile(gomock.Any(), gomock.Any(), gomock.Any()).Return(github.GitFile{}, errors.New("some error"))
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", claims) }, handler.CreateNote)
+		router.GET("/api/v1/note/:path", getClaimsHandler(), handler.GetNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(title, content)
-		req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(validNoteJson))
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), nil)
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
 		assert.JSONEq(t, internalServerErrJson, response.Body.String())
 	})
 
-	t.Run("should return bad request error when note payload validation fails", func(t *testing.T) {
-		tests := getNotePayloadValidations()
-
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
+	t.Run("should return bad request error when get request has invalid path param", func(t *testing.T) {
+		for _, invalidPath := range getInvalidNotePaths() {
+			t.Run("with invalid path: "+invalidPath, func(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				defer ctrl.Finish()
-				mockService := note.NewMockService(ctrl)
-				handler := NewNoteHandler(mockService)
-				claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
+				handler := NewNoteHandler(nil, nil)
 
-				router := gin.Default()
-				gin.SetMode(gin.TestMode)
-				router.POST("/api/v1/note", func(c *gin.Context) { c.Set("claims", claims) }, handler.CreateNote)
+				router := getRouter()
+				router.GET("/api/v1/note/:path", handler.GetNote)
 				response := httptest.NewRecorder()
-				req, _ := http.NewRequest(http.MethodPost, "/api/v1/note", strings.NewReader(test.notePayloadJson))
+				req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(invalidPath)), nil)
 
 				router.ServeHTTP(response, req)
 				assert.Equal(t, http.StatusBadRequest, response.Code)
-				assert.JSONEq(t, test.expectedResponse, response.Body.String())
+				assert.JSONEq(t, `{"code":"validation_failed", "message":"path: must be in a valid format"}`, response.Body.String())
 			})
 		}
 	})
 }
 
-func TestUpdateNote(t *testing.T) {
-	t.Run("should update a note when the update request is valid", func(t *testing.T) {
+func TestSaveNote(t *testing.T) {
+	t.Run("should save(create) a new note when the save request payload does not have the sha value", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		n := note.Note{
-			Model: gorm.Model{
-				ID: uint(noteId),
-			},
-			UserID:  userID,
-			Title:   title,
+		router := getRouter()
+		u := validUser()
+		fp := github.GitFileProps{SHA: "", Path: notePath, Content: content, AuthorName: authorName, AuthorEmail: authorEmail, RepoDetails: github.GitRepoProps{Repository: repository, DefaultBranch: branch, Owner: owner}}
+		f := validGitFile()
+		n := NoteRequestPayload{
 			Content: content,
 		}
-		mockService.EXPECT().Save(n).Return(nil)
-		handler := NewNoteHandler(mockService)
-		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
+		noteJson, _ := json.Marshal(n)
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().SaveFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(f, nil)
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
+		router.POST("/api/v1/note/:path", getClaimsHandler(), handler.SaveNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(title, content)
-		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(validNoteJson))
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
-		assert.Equal(t, "", response.Body.String())
+		assert.JSONEq(t, fmt.Sprintf(`{"content":"%s", "is_dir":%t, "path":"%s", "sha":"%s", "size":%d}`, f.Content, f.IsDir, f.Path, f.SHA, f.Size), response.Body.String())
 	})
 
-	t.Run("should return internal server error when updating a note fails", func(t *testing.T) {
+	t.Run("should save(update) a new note when the save request payload has the sha value", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		mockService.EXPECT().Save(gomock.Any()).Return(errors.New("some error"))
-		handler := NewNoteHandler(mockService)
-		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
+		router := getRouter()
+		u := validUser()
+		fp := github.GitFileProps{SHA: sha, Path: notePath, Content: content, AuthorName: authorName, AuthorEmail: authorEmail, RepoDetails: github.GitRepoProps{Repository: repository, DefaultBranch: branch, Owner: owner}}
+		f := validGitFile()
+		n := NoteRequestPayload{
+			SHA:     sha,
+			Content: content,
+		}
+		noteJson, _ := json.Marshal(n)
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().SaveFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(f, nil)
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
+		router.POST("/api/v1/note/:path", getClaimsHandler(), handler.SaveNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(title, content)
-		req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(validNoteJson))
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
+
+		router.ServeHTTP(response, req)
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.JSONEq(t, fmt.Sprintf(`{"content":"%s", "is_dir":%t, "path":"%s", "sha":"%s", "size":%d}`, f.Content, f.IsDir, f.Path, f.SHA, f.Size), response.Body.String())
+	})
+
+	t.Run("should return internal server error when saving note fails", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
+
+		router := getRouter()
+		u := validUser()
+		n := NoteRequestPayload{
+			Content: content,
+		}
+		noteJson, _ := json.Marshal(n)
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().SaveFile(gomock.Any(), gomock.Any(), gomock.Any()).Return(github.GitFile{}, errors.New("some error"))
+		handler := NewNoteHandler(mockGithubService, mockUserService)
+
+		router.POST("/api/v1/note/:path", getClaimsHandler(), handler.SaveNote)
+		response := httptest.NewRecorder()
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
 		assert.JSONEq(t, internalServerErrJson, response.Body.String())
 	})
 
-	t.Run("should return bad request error when note id param is invalid", func(t *testing.T) {
+	t.Run("should return bad request error when save request payload validation fails", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		handler := NewNoteHandler(nil, nil)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		handler := NewNoteHandler(mockService)
-		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
-
-		router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
+		router := getRouter()
+		router.POST("/api/v1/note/:path", handler.SaveNote)
 		response := httptest.NewRecorder()
-		validNoteJson := getNotePayloadJsonString(title, content)
-		req, _ := http.NewRequest(http.MethodPut, "/api/v1/note/abc", strings.NewReader(validNoteJson))
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader("{}"))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusBadRequest, response.Code)
-		assert.JSONEq(t, `{"code": "validation_failed", "message": "id: must be an integer number"}`, response.Body.String())
+		assert.JSONEq(t, `{"code":"validation_failed", "message":"content: cannot be blank"}`, response.Body.String())
 	})
 
-	t.Run("should return bad request error when note payload validation fails", func(t *testing.T) {
-		tests := getNotePayloadValidations()
-
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
+	t.Run("should return bad request error when save request has invalid path param", func(t *testing.T) {
+		for _, invalidPath := range getInvalidNotePaths() {
+			t.Run("with invalid path: "+invalidPath, func(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				defer ctrl.Finish()
-				mockService := note.NewMockService(ctrl)
-				handler := NewNoteHandler(mockService)
-				claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
+				handler := NewNoteHandler(nil, nil)
 
-				router := gin.Default()
-				gin.SetMode(gin.TestMode)
-				router.PUT("/api/v1/note/:id", func(c *gin.Context) { c.Set("claims", claims) }, handler.UpdateNote)
+				router := getRouter()
+				router.POST("/api/v1/note/:path", handler.SaveNote)
 				response := httptest.NewRecorder()
-				req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), strings.NewReader(test.notePayloadJson))
+				req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(invalidPath)), nil)
 
 				router.ServeHTTP(response, req)
 				assert.Equal(t, http.StatusBadRequest, response.Code)
-				assert.JSONEq(t, test.expectedResponse, response.Body.String())
+				assert.JSONEq(t, `{"code":"validation_failed", "message":"path: must be in a valid format"}`, response.Body.String())
 			})
 		}
 	})
@@ -267,16 +348,23 @@ func TestDeleteNote(t *testing.T) {
 	t.Run("should delete a note when the delete request is valid", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		mockService.EXPECT().Delete(noteId).Return(nil)
-		handler := NewNoteHandler(mockService)
+		router := getRouter()
+		u := validUser()
+		fp := github.GitFileProps{SHA: sha, Path: notePath, Content: "", AuthorName: authorName, AuthorEmail: authorEmail, RepoDetails: github.GitRepoProps{Repository: repository, DefaultBranch: branch, Owner: owner}}
+		n := NoteRequestPayload{
+			SHA: sha,
+		}
+		noteJson, _ := json.Marshal(n)
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().DeleteFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(nil)
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.DELETE("/api/v1/note/:id", handler.DeleteNote)
+		router.DELETE("/api/v1/note/:path", getClaimsHandler(), handler.DeleteNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), nil)
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -286,84 +374,112 @@ func TestDeleteNote(t *testing.T) {
 	t.Run("should return internal server error when deleting a note fails", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
+		mockGithubService := github.NewMockService(ctrl)
+		mockUserService := user.NewMockService(ctrl)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		mockService.EXPECT().Delete(noteId).Return(errors.New("some error"))
-		handler := NewNoteHandler(mockService)
+		router := getRouter()
+		u := validUser()
+		n := NoteRequestPayload{
+			SHA: sha,
+		}
+		noteJson, _ := json.Marshal(n)
+		mockUserService.EXPECT().Get(userID).Return(u, nil)
+		mockGithubService.EXPECT().DeleteFile(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("some error"))
+		handler := NewNoteHandler(mockGithubService, mockUserService)
 
-		router.DELETE("/api/v1/note/:id", handler.DeleteNote)
+		router.DELETE("/api/v1/note/:path", getClaimsHandler(), handler.DeleteNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", strconv.Itoa(noteId)), nil)
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
 		assert.JSONEq(t, internalServerErrJson, response.Body.String())
 	})
 
-	t.Run("should return bad request error when note id param is invalid", func(t *testing.T) {
+	t.Run("should return bad request error when delete request payload validation fails", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		mockService := note.NewMockService(ctrl)
-		handler := NewNoteHandler(mockService)
+		handler := NewNoteHandler(nil, nil)
 
-		router := gin.Default()
-		gin.SetMode(gin.TestMode)
-		router.DELETE("/api/v1/note/:id", handler.DeleteNote)
+		router := getRouter()
+		router.DELETE("/api/v1/note/:path", handler.DeleteNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", "abc"), nil)
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader("{}"))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusBadRequest, response.Code)
-		assert.JSONEq(t, `{"code": "validation_failed", "message": "id: must be an integer number"}`, response.Body.String())
+		assert.JSONEq(t, `{"code":"validation_failed", "message":"sha: cannot be blank"}`, response.Body.String())
+	})
+
+	t.Run("should return bad request error when delete request has invalid path param", func(t *testing.T) {
+		for _, invalidPath := range getInvalidNotePaths() {
+			t.Run("with invalid path: "+invalidPath, func(t *testing.T) {
+				ctrl := gomock.NewController(t)
+				defer ctrl.Finish()
+				handler := NewNoteHandler(nil, nil)
+
+				router := getRouter()
+				router.DELETE("/api/v1/note/:path", handler.DeleteNote)
+				response := httptest.NewRecorder()
+				req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(invalidPath)), nil)
+
+				router.ServeHTTP(response, req)
+				assert.Equal(t, http.StatusBadRequest, response.Code)
+				assert.JSONEq(t, `{"code":"validation_failed", "message":"path: must be in a valid format"}`, response.Body.String())
+			})
+		}
 	})
 }
 
-func getNotePayloadValidations() []struct {
-	name             string
-	notePayloadJson  string
-	expectedResponse string
-} {
-	return []struct {
-		name             string
-		notePayloadJson  string
-		expectedResponse string
-	}{
-		{
-			name:             "with blank title",
-			notePayloadJson:  getNotePayloadJsonString("", content),
-			expectedResponse: `{"code":"validation_failed", "message":"title: cannot be blank."}`,
+func validUser() user.User {
+	return user.User{
+		Model: gorm.Model{
+			ID: userID,
 		},
-		{
-			name:             "with title length more than 255 chars",
-			notePayloadJson:  getNotePayloadJsonString(randString(256), content),
-			expectedResponse: `{"code":"validation_failed", "message":"title: the length must be between 1 and 255."}`,
-		},
-		{
-			name:             "with blank content",
-			notePayloadJson:  getNotePayloadJsonString(title, ""),
-			expectedResponse: `{"code":"validation_failed", "message":"content: cannot be blank."}`,
-		},
-		{
-			name:             "with content length more than 5000 chars",
-			notePayloadJson:  getNotePayloadJsonString(title, randString(5001)),
-			expectedResponse: `{"code":"validation_failed", "message":"content: the length must be between 1 and 5000."}`,
+		Email:          authorEmail,
+		Name:           authorName,
+		Location:       location,
+		GithubUsername: owner,
+		GithubToken:    oauth2TokenJSON,
+		DefaultRepo: &preference.DefaultRepo{
+			Name:          repository,
+			Visibility:    visibility,
+			DefaultBranch: branch,
 		},
 	}
 }
 
-func getNotePayloadJsonString(title string, content string) string {
-	return fmt.Sprintf(`{"title":"%s", "content":"%s"}`, title, content)
+func validGitFile() github.GitFile {
+	return github.GitFile{
+		SHA:     sha,
+		Path:    notePath,
+		Content: content,
+		Size:    size,
+		IsDir:   false,
+	}
 }
 
-func randString(n int) string {
-	rand.Seed(time.Now().UnixNano())
+func getInvalidNotePaths() []string {
+	return []string{".md", "/", "/foo", "/.md", "/bar.md", "foo", "foo/bar", "foo/.md", "foo/bar.md/foo", "foo/bar.md/foo.md"}
+}
 
-	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+func getRouter() *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	router := gin.Default()
+	router.UseRawPath = true
+	return router
+}
+
+func getClaimsHandler() func(c *gin.Context) {
+	// this test handler simulates auth middleware
+	return func(c *gin.Context) {
+		claims := jwt.MapClaims{"sub": strconv.FormatUint(uint64(userID), 10)}
+		c.Set("claims", claims)
 	}
-	return string(b)
+}
+
+func getOAuth2Token(s string) oauth2.Token {
+	var oauth2Token oauth2.Token
+	json.Unmarshal([]byte(s), &oauth2Token)
+	return oauth2Token
 }
