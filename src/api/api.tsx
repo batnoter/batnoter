@@ -1,4 +1,4 @@
-import { Note } from "../reducer/note/noteSlice";
+import { Note } from "../reducer/noteSlice";
 
 // when we start the application using "npm start" then process.env.NODE_ENV will be automatically set to "development"
 const API_URL = "/api/v1";
@@ -8,13 +8,13 @@ const getHeaders = () => {
     Accept: "application/json",
     Authorization: "Bearer " + localStorage.getItem("token"),
     "Content-Type": "application/json"
-  };
-};
+  }
+}
 
 const catchError = (error: string) => {
   console.log(error);
   return Promise.reject(error)
-};
+}
 
 export const getUserProfile = () => {
   // There is no point in calling profile api without a token, since it will fail anyway due to missing token
@@ -26,19 +26,31 @@ export const getUserProfile = () => {
     }
     return await res.json();
   }).catch(catchError) : Promise.reject("token missing. fetching user profile failed");
-};
-
-export const getAllNotes = () => {
-  return fetch(`${API_URL}/note`, { headers: getHeaders() }).then(async (res) => {
-    if (!res.ok) {
-      return Promise.reject("fetching notes failed")
-    }
-    return await res.json();
-  }).catch(catchError)
 }
 
-export const getNoteByID = (id: string) => {
-  return fetch(`${API_URL}/note/${id}`, { headers: getHeaders() }).then(async (res) => {
+export const getUserGithubRepos = () => {
+  fetch(`${API_URL}/user/github/repo`, { headers: getHeaders() }).then(async (res) => {
+    if (!res.ok) {
+      return Promise.reject("fetching user's github repos failed")
+    }
+    return await res.json();
+  }).catch(catchError);
+}
+
+export const searchNotes = (page?: number, path?: string, query?: string) => {
+  return fetch(`${API_URL}/note?page=` + (page || 1) + (path ? `path=${path}` : "") + (query ? `query=${query}` : ""),
+    { headers: getHeaders() }).then(async (res) => {
+      if (!res.ok) {
+        return Promise.reject("fetching notes failed")
+      }
+      return await res.json();
+    }).catch(catchError)
+}
+
+export const getNote = (path: string) => {
+  return fetch(`${API_URL}/note/` + encodeURIComponent(path), {
+    headers: getHeaders()
+  }).then(async (res) => {
     if (!res.ok) {
       return Promise.reject("fetching note failed")
     }
@@ -46,10 +58,10 @@ export const getNoteByID = (id: string) => {
   }).catch(catchError)
 }
 
-export const saveNote = (note: Note) => {
-  return fetch(`${API_URL}/note/`, {
+export const saveNote = (path: string, content: string, sha?: string) => {
+  return fetch(`${API_URL}/note/` + encodeURIComponent(path), {
     method: "POST",
-    body: JSON.stringify(note),
+    body: JSON.stringify({ sha: sha, content: content }),
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
@@ -59,8 +71,12 @@ export const saveNote = (note: Note) => {
   }).catch(catchError)
 }
 
-export const deleteNote = (id: number) => {
-  return fetch(`${API_URL}/note/${id}`, { method: "DELETE", headers: getHeaders() }).then(async (res) => {
+export const deleteNote = (note: Note) => {
+  return fetch(`${API_URL}/note/` + encodeURIComponent(note.path), {
+    method: "DELETE",
+    body: JSON.stringify({ sha: note.sha }),
+    headers: getHeaders()
+  }).then(async (res) => {
     if (!res.ok) {
       return Promise.reject("deleting note failed")
     }

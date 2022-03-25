@@ -7,7 +7,7 @@ import { Divider, List, ListItemButton, ListItemIcon, ListItemText, styled, Tool
 import MuiDrawer from '@mui/material/Drawer';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User } from '../reducer/user/userSlice';
+import { User } from '../reducer/userSlice';
 
 interface Props {
   user: User | null
