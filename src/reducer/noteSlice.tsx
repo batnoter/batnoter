@@ -1,58 +1,73 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { deleteNote, getAllNotes, getNoteByID, saveNote } from "../../api/api";
-import { RootState } from "../../app/store";
+import { deleteNote, getNote, saveNote, searchNotes } from "../api/api";
+import { RootState } from "../app/store";
+
+export interface SearchParams {
+  page?: number
+  path?: string
+  query?: string
+}
 
 export interface Note {
-  id?: number
-  created_at?: string
-  updated_at?: string
-  title: string
+  sha: string
+  path: string
   content: string
+  size: number
+  is_dir: boolean
 }
 
 export enum NoteStatus { LOADING, IDLE, FAIL }
 
 interface NoteState {
-  list: Note[]
+  page: {
+    total: number
+    notes: Note[]
+  }
   current: Note | null
   status: NoteStatus
 }
 
 const initialState: NoteState = {
-  list: [],
+  page: {
+    total: 0,
+    notes: []
+  },
   current: null,
   status: NoteStatus.IDLE
 }
 
-export const getAllNotesAsync = createAsyncThunk(
+export const searchNotesAsync = createAsyncThunk(
   'note/fetchNotes',
-  async () => {
-    const response = await getAllNotes();
+  async (params?: SearchParams) => {
+    const response = await searchNotes(params?.page, params?.path, params?.query);
     return response;
   }
 );
 
-export const getNoteByIDAsync = createAsyncThunk(
-  'note/fetchNoteByID',
+export const getNoteAsync = createAsyncThunk(
+  'note/fetchNote',
   async (id: string) => {
-    const response = await getNoteByID(id);
+    const response = await getNote(id);
     return response;
   }
 );
 
 export const saveNoteAsync = createAsyncThunk(
   'note/saveNote',
-  async (note: Note) => {
-    const response = await saveNote(note);
-    return response;
+  async ({ path, content, sha }: { path: string, content: string, sha?: string }) => {
+    const response = await saveNote(path, content, sha);
+    return {
+      ...response.payload,
+      content: content
+    };
   }
 );
 
 export const deleteNoteAsync = createAsyncThunk(
   'note/deleteNote',
-  async (id: number) => {
-    await deleteNote(id);
-    return id;
+  async (note: Note) => {
+    await deleteNote(note);
+    return note;
   }
 );
 
@@ -63,27 +78,27 @@ export const noteSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllNotesAsync.pending, (state) => {
+      .addCase(searchNotesAsync.pending, (state) => {
         state.status = NoteStatus.LOADING;
       })
-      .addCase(getAllNotesAsync.fulfilled, (state, action) => {
-        state.list = action.payload;
+      .addCase(searchNotesAsync.fulfilled, (state, action) => {
+        state.page = action.payload;
         state.status = NoteStatus.IDLE;
       })
-      .addCase(getAllNotesAsync.rejected, (state) => {
-        state.list = [];
+      .addCase(searchNotesAsync.rejected, (state) => {
+        state.page = initialState.page;
         state.status = NoteStatus.FAIL;
       })
 
-      .addCase(getNoteByIDAsync.pending, (state) => {
+      .addCase(getNoteAsync.pending, (state) => {
         state.current = null
         state.status = NoteStatus.LOADING;
       })
-      .addCase(getNoteByIDAsync.fulfilled, (state, action) => {
+      .addCase(getNoteAsync.fulfilled, (state, action) => {
         state.current = action.payload
         state.status = NoteStatus.IDLE;
       })
-      .addCase(getNoteByIDAsync.rejected, (state) => {
+      .addCase(getNoteAsync.rejected, (state) => {
         state.status = NoteStatus.FAIL;
       })
 
@@ -91,8 +106,8 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(saveNoteAsync.fulfilled, (state, action) => {
-        state.list = state.list.filter(n => n.id !== action.payload)
-        state.list.push(action.payload)
+        state.page.notes = state.page.notes.filter(n => n.sha !== action.payload.sha)
+        state.page.notes.push(action.payload)
         state.status = NoteStatus.IDLE;
       })
       .addCase(saveNoteAsync.rejected, (state) => {
@@ -103,7 +118,7 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(deleteNoteAsync.fulfilled, (state, action) => {
-        state.list = state.list.filter(n => n.id !== action.payload)
+        state.page.notes = state.page.notes.filter(n => n.sha !== action.payload.sha)
         state.status = NoteStatus.IDLE;
       })
       .addCase(deleteNoteAsync.rejected, (state) => {
@@ -112,6 +127,6 @@ export const noteSlice = createSlice({
   },
 })
 export const selectCurrentNote = (state: RootState) => state.notes.current;
-export const selectNotes = (state: RootState) => state.notes.list;
+export const selectNotesPage = (state: RootState) => state.notes.page;
 export const selectNoteStatus = (state: RootState) => state.notes.status;
 export default noteSlice.reducer;

@@ -8,8 +8,8 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getAllNotesAsync } from '../reducer/note/noteSlice';
-import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout, UserStatus } from '../reducer/user/userSlice';
+import { searchNotesAsync } from '../reducer/noteSlice';
+import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout, UserStatus } from '../reducer/userSlice';
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
 import Editor from './Editor';
@@ -32,7 +32,7 @@ const Main = () => {
 
   useEffect(() => {
     if (userStatus == UserStatus.IDLE && user != null) {
-      dispatch(getAllNotesAsync())
+      dispatch(searchNotesAsync())
     }
   }, [userStatus, user])
 
@@ -40,7 +40,7 @@ const Main = () => {
     <ThemeProvider theme={createTheme()}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user}/>
+        <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user} />
         <AppDrawer user={user} />
         <Box component="main" sx={{
           backgroundColor: (theme) => theme.palette.mode === 'light'

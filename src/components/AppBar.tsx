@@ -2,7 +2,7 @@ import { Login as LoginIcon } from '@mui/icons-material';
 import { Avatar, Box, Button, CircularProgress, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import React from 'react';
-import { User, UserStatus } from '../reducer/user/userSlice';
+import { User, UserStatus } from '../reducer/userSlice';
 
 interface Props {
   user: User | null
