@@ -4,32 +4,23 @@ import { Button, Container, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../app/hooks'
-import { saveNoteAsync } from '../reducer/note/noteSlice'
+import { saveNoteAsync } from '../reducer/noteSlice'
 
-
-const Editor = () => {
+const Editor: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate()
-  const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [titleError, setTitleError] = useState(false)
-  const [contentError, setContentError] = useState(false)
+  const [path, setPath] = useState('')
+  const [pathError, setPathError] = useState(false)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setTitleError(false)
-    setContentError(false)
-
-    if (title == '') {
-      setTitleError(true)
+    setPathError(false)
+    if (!path) {
+      setPathError(true)
     }
-    if (content == '') {
-      setContentError(true)
-    }
-    if (title && content) {
-      dispatch(saveNoteAsync({ title, content }))
-      navigate('/')
-    }
+    dispatch(saveNoteAsync({ path: path, content: content }))
+    navigate('/')
   }
 
   return (
@@ -45,12 +36,12 @@ const Editor = () => {
 
       <form noValidate autoComplete="off" onSubmit={handleSubmit}>
         <TextField sx={{ my: 2, display: "block" }}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => setPath(e.target.value)}
           label="Note Title"
           variant="outlined"
           fullWidth
           required
-          error={titleError}
+          error={pathError}
         />
         <TextField sx={{ my: 2, display: "block" }}
           onChange={(e) => setContent(e.target.value)}
@@ -60,7 +51,6 @@ const Editor = () => {
           rows={4}
           fullWidth
           required
-          error={contentError}
         />
 
         <Button

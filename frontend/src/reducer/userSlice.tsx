@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getUserProfile } from "../../api/api";
-import { RootState } from "../../app/store";
+import { getUserProfile } from "../api/api";
+import { RootState } from "../app/store";
 
 export interface User {
   email: string
