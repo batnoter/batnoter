@@ -17,26 +17,26 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	}
 
 	router := gin.Default()
+	router.UseRawPath = true
 
-	noteHandler := NewNoteHandler(applicationconfig.NoteService)
-	githubHandler := NewGithubHandler(applicationconfig.AuthService, applicationconfig.UserService, applicationconfig.Config.OAuth2)
+	noteHandler := NewNoteHandler(applicationconfig.GithubService, applicationconfig.UserService)
+	loginHandler := NewLoginHandler(applicationconfig.AuthService, applicationconfig.GithubService, applicationconfig.UserService)
 	userHandler := NewUserHandler(applicationconfig.UserService)
 	preferenceHandler := NewPreferenceHandler(applicationconfig.PreferenceService)
 	authMiddleware := NewMiddleware(applicationconfig.AuthService)
 
 	v1 := router.Group("api/v1")
 	v1.GET("/user/me", authMiddleware.AuthorizeToken(), userHandler.Profile)
-	v1.GET("/user/github/repo", authMiddleware.AuthorizeToken(), githubHandler.GithubUserRepos)
+	v1.GET("/user/github/repo", authMiddleware.AuthorizeToken(), noteHandler.GetRepos)
 	v1.POST("/user/preference/repo", authMiddleware.AuthorizeToken(), preferenceHandler.SaveDefaultRepo)
 
-	v1.GET("/note", authMiddleware.AuthorizeToken(), noteHandler.GetAllNotes)
-	v1.GET("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.GetNote)
-	v1.POST("/note", authMiddleware.AuthorizeToken(), noteHandler.CreateNote)
-	v1.PUT("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.UpdateNote)
-	v1.DELETE("/note/:id", authMiddleware.AuthorizeToken(), noteHandler.DeleteNote)
+	v1.GET("/note", authMiddleware.AuthorizeToken(), noteHandler.SearchNotes)         // search notes (provide filters using query-params)
+	v1.GET("/note/:path", authMiddleware.AuthorizeToken(), noteHandler.GetNote)       // get single note
+	v1.POST("/note/:path", authMiddleware.AuthorizeToken(), noteHandler.SaveNote)     // create/update single note
+	v1.DELETE("/note/:path", authMiddleware.AuthorizeToken(), noteHandler.DeleteNote) // delete single note
 
-	v1.GET("/oauth2/login/github", githubHandler.GithubLogin)
-	v1.GET("/oauth2/github/callback", githubHandler.GithubOAuth2Callback)
+	v1.GET("/oauth2/login/github", loginHandler.GithubLogin)
+	v1.GET("/oauth2/github/callback", loginHandler.GithubOAuth2Callback)
 
 	address := net.JoinHostPort(applicationconfig.Config.HTTPServer.Host, applicationconfig.Config.HTTPServer.Port)
 	server := http.Server{
