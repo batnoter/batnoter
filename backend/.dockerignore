@@ -1,0 +1,20 @@
+# https://github.com/docker/docker.github.io/blob/master/.dockerignore
+
+.dockerignore
+.DS_Store
+.git
+.github
+.gitignore
+.gitmodules
+.idea
+.jekyll-metadata
+.sass-cache
+tests
+_site
+CONTRIBUTING.md
+Dockerfile
+Dockerfile.archive
+docker-compose.yml
+Gemfile
+Gemfile.lock
+_website*.json
