@@ -1,8 +1,8 @@
-import React from 'react';
 import { render } from '@testing-library/react';
+import React from 'react';
 import { Provider } from 'react-redux';
-import { store } from './app/store';
 import App from './App';
+import { store } from './app/store';
 
 test('renders login react link', () => {
   const { getByText } = render(
@@ -11,5 +11,5 @@ test('renders login react link', () => {
     </Provider>
   );
 
-  expect(getByText(/Login/i)).toBeInTheDocument();
+  expect(getByText(/GIT NOTER/i)).toBeInTheDocument();
 });
