@@ -1,0 +1,40 @@
+name: Test - Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    # Note: GitHub does not pass secrets(for security reasons) to PR workflows created with forked repos
+    # So do not use any actions that require secrets
+    # Tee GITHUB_TOKEN secret is allowed with readonly access for PR workflows created with forked repos
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: setup go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.17
+        
+    - name: setup node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 16.x
+
+    - name: test backend
+      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+      working-directory: ./backend
+
+    - name: test frontend
+      run: |
+        npm ci
+        npm test -- --env=jsdom --coverage --watchAll=false --reporters=default
+      working-directory: ./frontend
+      
+    - name: upload coverage to codecov
+      uses: codecov/codecov-action@v2
