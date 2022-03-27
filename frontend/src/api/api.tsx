@@ -1,4 +1,5 @@
 import { Note } from "../reducer/noteSlice";
+import { Repo } from "../reducer/preferenceSlice";
 
 // when we start the application using "npm start" then process.env.NODE_ENV will be automatically set to "development"
 const API_URL = "/api/v1";
@@ -28,13 +29,25 @@ export const getUserProfile = () => {
   }).catch(catchError) : Promise.reject("token missing. fetching user profile failed");
 }
 
-export const getUserGithubRepos = () => {
-  fetch(`${API_URL}/user/github/repo`, { headers: getHeaders() }).then(async (res) => {
+export const getUserRepos = () => {
+  return fetch(`${API_URL}/user/preference/repo`, { headers: getHeaders() }).then(async (res) => {
     if (!res.ok) {
       return Promise.reject("fetching user's github repos failed")
     }
     return await res.json();
   }).catch(catchError);
+}
+
+export const saveDefaultRepo = (defaultRepo: Repo) => {
+  return fetch(`${API_URL}/user/preference/repo`, {
+    method: "POST",
+    body: JSON.stringify(defaultRepo),
+    headers: getHeaders()
+  }).then(async (res) => {
+    if (!res.ok) {
+      return Promise.reject("saving user's default repo failed")
+    }
+  }).catch(catchError)
 }
 
 export const searchNotes = (page?: number, path?: string, query?: string) => {

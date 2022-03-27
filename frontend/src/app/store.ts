@@ -1,11 +1,13 @@
 import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import noteReducer from '../reducer/noteSlice';
+import preferenceReducer from '../reducer/preferenceSlice';
 import userReducer from '../reducer/userSlice';
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    notes: noteReducer
+    notes: noteReducer,
+    preference:  preferenceReducer
   },
 });
 
