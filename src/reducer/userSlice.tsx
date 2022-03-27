@@ -7,6 +7,11 @@ export interface User {
   name: string
   location: string
   avatar_url: string
+  default_repo? : {
+    name: string,
+    visibility: string,
+    default_branch: string
+  }
 }
 
 export enum UserStatus { LOADING, IDLE, FAIL }

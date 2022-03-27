@@ -2,6 +2,7 @@ import { Login as LoginIcon } from '@mui/icons-material';
 import { Avatar, Box, Button, CircularProgress, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { User, UserStatus } from '../reducer/userSlice';
 
 interface Props {
@@ -39,7 +40,7 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
             <Menu autoFocus={false} sx={{ mt: '5px' }} id="menu-appbar" anchorEl={anchorEl} anchorOrigin={{
               vertical: 'bottom', horizontal: 'right'
             }} transformOrigin={{ vertical: 'top', horizontal: 'right', }} open={Boolean(anchorEl)} onClose={handleClose}>
-              <MenuItem onClick={handleClose}>Profile</MenuItem>
+              <MenuItem component={Link} to={"/settings"} onClick={handleClose}>Setting</MenuItem>
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </>
