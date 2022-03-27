@@ -26,15 +26,8 @@ jobs:
       with:
         node-version: 16.x
 
-    - name: login to github docker registry
-      uses: docker/login-action@v1.14.1
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
     - name: test backend
-      run: go test -v -race -coverprofile=coverage.out -coverpkg=./... -covermode=atomic ./...
+      run: go test -v -race -coverprofile=coverage.out -coverpkg=./internal/... -covermode=atomic ./internal/...
       working-directory: ./backend
 
     - name: test frontend
@@ -45,6 +38,13 @@ jobs:
 
     - name: upload coverage to codecov
       uses: codecov/codecov-action@v2
+
+    - name: login to github docker registry
+      uses: docker/login-action@v1.14.1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: publish backend docker image to registry
       env:
