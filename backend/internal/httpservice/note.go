@@ -60,35 +60,6 @@ const (
 	notePathRegex = `(?m)^[^/][/a-zA-Z0-9-]+([^/]\.md)$`
 )
 
-func (n *NoteHandler) GetRepos(c *gin.Context) {
-	user, err := n.getUser(c)
-	if err != nil {
-		logrus.Errorf("fetching user from context failed")
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-	logrus.WithField("user-id", user.ID).Info("request to retrieve repos started")
-	gitRepos, err := n.githubService.GetRepos(c, parseOAuth2Token(user.GithubToken))
-	if err != nil {
-		logrus.Errorf("retrieving repos from github failed")
-		abortRequestWithError(c, err)
-		return
-	}
-
-	repos := make([]RepoPayload, 0, len(gitRepos))
-	for _, gitRepo := range gitRepos {
-		repo := RepoPayload{
-			Name:          gitRepo.Name,
-			Visibility:    gitRepo.Visibility,
-			DefaultBranch: gitRepo.DefaultBranch,
-		}
-		repos = append(repos, repo)
-	}
-
-	c.JSON(http.StatusOK, repos)
-	logrus.WithField("user-id", user.ID).Info("request to retrieve repos successful")
-}
-
 func (n *NoteHandler) SearchNotes(c *gin.Context) {
 	// get note-path, query, page from query-params as a filter criteria
 	path := c.Query("path")
@@ -198,13 +169,13 @@ func (n *NoteHandler) DeleteNote(c *gin.Context) {
 	logrus.WithField("user-id", user.ID).WithField("note_path", path).Info("request to delete note successful")
 }
 
-func (g *NoteHandler) getUser(c *gin.Context) (user.User, error) {
+func (n *NoteHandler) getUser(c *gin.Context) (user.User, error) {
 	userID, err := getUserIDFromContext(c)
 	if err != nil {
 		logrus.Errorf("fetching user-id from context failed")
 		return user.User{}, err
 	}
-	return g.userService.Get(userID)
+	return n.userService.Get(userID)
 }
 
 func makeFileProps(user user.User, noteReqPayload NoteRequestPayload, path string) github.GitFileProps {

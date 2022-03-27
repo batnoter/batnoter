@@ -22,12 +22,12 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	noteHandler := NewNoteHandler(applicationconfig.GithubService, applicationconfig.UserService)
 	loginHandler := NewLoginHandler(applicationconfig.AuthService, applicationconfig.GithubService, applicationconfig.UserService)
 	userHandler := NewUserHandler(applicationconfig.UserService)
-	preferenceHandler := NewPreferenceHandler(applicationconfig.PreferenceService)
+	preferenceHandler := NewPreferenceHandler(applicationconfig.PreferenceService, applicationconfig.GithubService, applicationconfig.UserService)
 	authMiddleware := NewMiddleware(applicationconfig.AuthService)
 
 	v1 := router.Group("api/v1")
 	v1.GET("/user/me", authMiddleware.AuthorizeToken(), userHandler.Profile)
-	v1.GET("/user/github/repo", authMiddleware.AuthorizeToken(), noteHandler.GetRepos)
+	v1.GET("/user/preference/repo", authMiddleware.AuthorizeToken(), preferenceHandler.GetRepos)
 	v1.POST("/user/preference/repo", authMiddleware.AuthorizeToken(), preferenceHandler.SaveDefaultRepo)
 
 	v1.GET("/note", authMiddleware.AuthorizeToken(), noteHandler.SearchNotes)         // search notes (provide filters using query-params)
