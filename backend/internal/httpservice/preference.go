@@ -4,11 +4,26 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/sirupsen/logrus"
 	"github.com/vivekweb2013/gitnoter/internal/github"
 	"github.com/vivekweb2013/gitnoter/internal/preference"
 	"github.com/vivekweb2013/gitnoter/internal/user"
 )
+
+type RepoPayload struct {
+	Name          string `json:"name"`
+	Visibility    string `json:"visibility"`
+	DefaultBranch string `json:"default_branch"`
+}
+
+func (r RepoPayload) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.Name, validation.Required, validation.Length(1, 50)),
+		validation.Field(&r.Visibility, validation.Required, validation.Length(1, 20)),
+		validation.Field(&r.Visibility, validation.Length(0, 50)),
+	)
+}
 
 type PreferenceHandler struct {
 	preferenceService preference.Service
@@ -72,7 +87,7 @@ func (p *PreferenceHandler) SaveDefaultRepo(c *gin.Context) {
 	dbDefaultRepo, err := p.preferenceService.GetByUserID(userID)
 	if err != nil {
 		logrus.Errorf("retrieving user's default repo failed")
-		c.AbortWithStatus(http.StatusUnauthorized)
+		abortRequestWithError(c, err)
 		return
 	}
 
