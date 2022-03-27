@@ -15,19 +15,22 @@ import AppDrawer from './AppDrawer';
 import Editor from './Editor';
 import { Favorites } from './Favorites';
 import Finder from './Finder';
+import RepoSelectDialog from './RepoSelectDialog';
+import Settings from './Settings';
 
 const Main = () => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(getUserProfileAsync())
   }, [])
-  const handleLogout = () => {
-    dispatch(userLogout())
-  }
   const user = useAppSelector(selectUser);
   const userStatus = useAppSelector(selectUserStatus);
+
   const setUserStatus = () => {
     dispatch(userLoading())
+  }
+  const handleLogout = () => {
+    dispatch(userLogout())
   }
 
   useEffect(() => {
@@ -47,11 +50,13 @@ const Main = () => {
             ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
         }}>
           <Toolbar />
+          <RepoSelectDialog open={user != null && !user?.default_repo?.name}></RepoSelectDialog>
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Routes>
               <Route path="/" element={<Finder />} ></Route>
               <Route path="/new" element={<Editor />} ></Route>
               <Route path="/favorites" element={<Favorites />} ></Route>
+              <Route path="/settings" element={<Settings user={user} />} ></Route>
             </Routes>
           </Container>
         </Box>
