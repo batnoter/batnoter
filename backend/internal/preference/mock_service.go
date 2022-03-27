@@ -34,18 +34,18 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetByUserID mocks base method.
-func (m *MockService) GetByUserID(userId uint) (DefaultRepo, error) {
+func (m *MockService) GetByUserID(userID uint) (DefaultRepo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUserID", userId)
+	ret := m.ctrl.Call(m, "GetByUserID", userID)
 	ret0, _ := ret[0].(DefaultRepo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByUserID indicates an expected call of GetByUserID.
-func (mr *MockServiceMockRecorder) GetByUserID(userId interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetByUserID(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockService)(nil).GetByUserID), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockService)(nil).GetByUserID), userID)
 }
 
 // Save mocks base method.

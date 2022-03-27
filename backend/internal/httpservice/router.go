@@ -9,7 +9,7 @@ import (
 	"github.com/vivekweb2013/gitnoter/internal/applicationconfig"
 )
 
-// Start the http server
+// Run starts the http server.
 func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	gin.SetMode(gin.ReleaseMode)
 	if applicationconfig.Config.HTTPServer.Debug {
@@ -46,8 +46,5 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 		WriteTimeout:   2 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
 	}
-	if err := server.ListenAndServe(); err != nil {
-		return err
-	}
-	return nil
+	return server.ListenAndServe()
 }

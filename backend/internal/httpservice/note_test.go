@@ -36,7 +36,7 @@ const (
 	searchQuery           = "birthday"
 	pageNumber            = 2
 	token                 = "token"
-	internalServerErrJson = `{"code":"internal_server_error", "message":"something went wrong. contact support"}`
+	internalServerErrJSON = `{"code":"internal_server_error", "message":"something went wrong. contact support"}`
 )
 
 func TestSearchNotes(t *testing.T) {
@@ -87,7 +87,7 @@ func TestSearchNotes(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 }
 
@@ -152,7 +152,7 @@ func TestGetNote(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 	t.Run("should return bad request error when get request has invalid path param", func(t *testing.T) {
@@ -189,14 +189,14 @@ func TestSaveNote(t *testing.T) {
 		n := NoteRequestPayload{
 			Content: content,
 		}
-		noteJson, _ := json.Marshal(n)
+		noteJSON, _ := json.Marshal(n)
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
 		mockGithubService.EXPECT().SaveFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(f, nil)
 		handler := NewNoteHandler(mockGithubService, mockUserService)
 
 		router.POST("/api/v1/note/:path", getClaimsHandler(), handler.SaveNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJSON)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -217,14 +217,14 @@ func TestSaveNote(t *testing.T) {
 			SHA:     sha,
 			Content: content,
 		}
-		noteJson, _ := json.Marshal(n)
+		noteJSON, _ := json.Marshal(n)
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
 		mockGithubService.EXPECT().SaveFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(f, nil)
 		handler := NewNoteHandler(mockGithubService, mockUserService)
 
 		router.POST("/api/v1/note/:path", getClaimsHandler(), handler.SaveNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJSON)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -242,18 +242,18 @@ func TestSaveNote(t *testing.T) {
 		n := NoteRequestPayload{
 			Content: content,
 		}
-		noteJson, _ := json.Marshal(n)
+		noteJSON, _ := json.Marshal(n)
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
 		mockGithubService.EXPECT().SaveFile(gomock.Any(), gomock.Any(), gomock.Any()).Return(github.GitFile{}, errors.New("some error"))
 		handler := NewNoteHandler(mockGithubService, mockUserService)
 
 		router.POST("/api/v1/note/:path", getClaimsHandler(), handler.SaveNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
+		req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJSON)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 	t.Run("should return bad request error when save request payload validation fails", func(t *testing.T) {
@@ -304,14 +304,14 @@ func TestDeleteNote(t *testing.T) {
 		n := NoteRequestPayload{
 			SHA: sha,
 		}
-		noteJson, _ := json.Marshal(n)
+		noteJSON, _ := json.Marshal(n)
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
 		mockGithubService.EXPECT().DeleteFile(gomock.Any(), getOAuth2Token(u.GithubToken), fp).Return(nil)
 		handler := NewNoteHandler(mockGithubService, mockUserService)
 
 		router.DELETE("/api/v1/note/:path", getClaimsHandler(), handler.DeleteNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJSON)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -329,18 +329,18 @@ func TestDeleteNote(t *testing.T) {
 		n := NoteRequestPayload{
 			SHA: sha,
 		}
-		noteJson, _ := json.Marshal(n)
+		noteJSON, _ := json.Marshal(n)
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
 		mockGithubService.EXPECT().DeleteFile(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("some error"))
 		handler := NewNoteHandler(mockGithubService, mockUserService)
 
 		router.DELETE("/api/v1/note/:path", getClaimsHandler(), handler.DeleteNote)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJson)))
+		req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/note/%s", url.QueryEscape(notePath)), strings.NewReader(string(noteJSON)))
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 	t.Run("should return bad request error when delete request payload validation fails", func(t *testing.T) {

@@ -1,12 +1,13 @@
 package github
 
+// GitRepoProps used to provide repo details to github client
 type GitRepoProps struct {
 	Repository    string
 	DefaultBranch string
 	Owner         string
 }
 
-// used to provide request details to github client
+// GitFileProps used to provide request details to github client
 type GitFileProps struct {
 	SHA         string // this is a blob sha (not commit sha)
 	Path        string
@@ -16,7 +17,7 @@ type GitFileProps struct {
 	RepoDetails GitRepoProps
 }
 
-// used to provide response to file request
+// GitFile used to provide response to file request
 type GitFile struct {
 	SHA     string // this is a blob sha (not commit sha)
 	Path    string
@@ -25,7 +26,7 @@ type GitFile struct {
 	IsDir   bool
 }
 
-// used to provide response to repos request
+// GitRepo used to provide response to repos request
 type GitRepo struct {
 	Name          string
 	Visibility    string

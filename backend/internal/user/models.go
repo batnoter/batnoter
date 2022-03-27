@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// User represent an entity model used for storing and retrieving user to/from database.
 type User struct {
 	gorm.Model
 

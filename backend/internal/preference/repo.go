@@ -8,7 +8,7 @@ import (
 //go:generate mockgen -source=repo.go -package=preference -destination=mock_repo.go
 type Repo interface {
 	Save(defaultRepo DefaultRepo) error
-	GetByUserID(userId uint) (DefaultRepo, error)
+	GetByUserID(userID uint) (DefaultRepo, error)
 }
 
 type repoImpl struct {

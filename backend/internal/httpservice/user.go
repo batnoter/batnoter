@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -11,16 +12,29 @@ import (
 	"github.com/vivekweb2013/gitnoter/internal/user"
 )
 
+// UserResponsePayload represents the http response payload of user entity.
+type UserResponsePayload struct {
+	Email       string       `json:"email"`
+	Name        string       `json:"name,omitempty"`
+	Location    string       `json:"location,omitempty"`
+	AvatarURL   string       `json:"avatar_url,omitempty"`
+	DisabledAt  *time.Time   `json:"disabled_at,omitempty"`
+	DefaultRepo *RepoPayload `json:"default_repo,omitempty"`
+}
+
+// UserHandler represents http handler for managing user entities.
 type UserHandler struct {
 	userService user.Service
 }
 
+// NewUserHandler creates and returns a new user handler.
 func NewUserHandler(userService user.Service) *UserHandler {
 	return &UserHandler{
 		userService: userService,
 	}
 }
 
+// Profile returns the user profile as a http response.
 func (u *UserHandler) Profile(c *gin.Context) {
 	userID, err := getUserIDFromContext(c)
 	if err != nil {

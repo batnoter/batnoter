@@ -15,11 +15,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// NoteRequestPayload represents the http request payload of note entity.
 type NoteRequestPayload struct {
 	SHA     string `json:"sha"`
 	Content string `json:"content"`
 }
 
+// NoteResponsePayload represents the http response payload of note entity.
 type NoteResponsePayload struct {
 	SHA     string `json:"sha"`
 	Path    string `json:"path"`
@@ -28,16 +30,21 @@ type NoteResponsePayload struct {
 	IsDir   bool   `json:"is_dir"`
 }
 
+// NoteSearchResponsePayload represents the http response payload for note search operation.
+// Total is the count of total results found.
+// Notes are the subset of search result as requested with pagination attributes.
 type NoteSearchResponsePayload struct {
 	Total int                   `json:"total"`
 	Notes []NoteResponsePayload `json:"notes"`
 }
 
+// NoteHandler represents http handler for managing note entities.
 type NoteHandler struct {
 	githubService github.Service
 	userService   user.Service
 }
 
+// NewNoteHandler creates and returns a new note handler.
 func NewNoteHandler(githubService github.Service, userService user.Service) *NoteHandler {
 	return &NoteHandler{githubService: githubService, userService: userService}
 }
@@ -46,6 +53,8 @@ const (
 	notePathRegex = `(?m)^[^/][/a-zA-Z0-9-]+([^/]\.md)$`
 )
 
+// SearchNotes performs a note search operation with specified filter criteria.
+// It returns the result of search operation as a http response.
 func (n *NoteHandler) SearchNotes(c *gin.Context) {
 	// get note-path, query, page from query-params as a filter criteria
 	path := c.Query("path")
@@ -72,6 +81,7 @@ func (n *NoteHandler) SearchNotes(c *gin.Context) {
 		WithField("query", query).WithField("page", page).Info("request to search & retrieve notes successful")
 }
 
+// GetNote returns a note with requested path as a http response.
 func (n *NoteHandler) GetNote(c *gin.Context) {
 	path := c.Param("path")
 	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(notePathRegex))); err != nil {
@@ -96,6 +106,7 @@ func (n *NoteHandler) GetNote(c *gin.Context) {
 	logrus.WithField("user-id", user.ID).WithField("note_path", path).Info("request to retrieve note successful")
 }
 
+// SaveNote stores the note and returns the metadata as a http response.
 func (n *NoteHandler) SaveNote(c *gin.Context) {
 	path := c.Param("path")
 	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(notePathRegex))); err != nil {
@@ -126,6 +137,7 @@ func (n *NoteHandler) SaveNote(c *gin.Context) {
 	logrus.WithField("user-id", user.ID).WithField("note_path", path).Info("request to save note successful")
 }
 
+// DeleteNote deletes a note with requested path.
 func (n *NoteHandler) DeleteNote(c *gin.Context) {
 	path := c.Param("path")
 	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(notePathRegex))); err != nil {

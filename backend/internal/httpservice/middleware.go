@@ -8,14 +8,17 @@ import (
 	"github.com/vivekweb2013/gitnoter/internal/auth"
 )
 
+// Middleware represents a http middleware used primarily for authorization.
 type Middleware struct {
 	authService auth.Service
 }
 
+// NewMiddleware creates and return the middleware.
 func NewMiddleware(authservice auth.Service) *Middleware {
 	return &Middleware{authService: authservice}
 }
 
+// AuthorizeToken retrieves and validates app token from authorization header of http request.
 func (m *Middleware) AuthorizeToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

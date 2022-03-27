@@ -3,7 +3,6 @@ package httpservice
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	gh "github.com/google/go-github/v43/github"
@@ -14,21 +13,14 @@ import (
 	"github.com/vivekweb2013/gitnoter/internal/user"
 )
 
-type UserResponsePayload struct {
-	Email       string       `json:"email"`
-	Name        string       `json:"name,omitempty"`
-	Location    string       `json:"location,omitempty"`
-	AvatarURL   string       `json:"avatar_url,omitempty"`
-	DisabledAt  *time.Time   `json:"disabled_at,omitempty"`
-	DefaultRepo *RepoPayload `json:"default_repo,omitempty"`
-}
-
+// LoginHandler represents http handler for serving user login actions.
 type LoginHandler struct {
 	authService  auth.Service
 	githubServie github.Service
 	userService  user.Service
 }
 
+// NewLoginHandler creates and returns a new login handler.
 func NewLoginHandler(authService auth.Service, githubServie github.Service, userService user.Service) *LoginHandler {
 	return &LoginHandler{
 		authService:  authService,
@@ -37,6 +29,7 @@ func NewLoginHandler(authService auth.Service, githubServie github.Service, user
 	}
 }
 
+// GithubLogin initiates oauth2 login flow with github provider.
 func (l *LoginHandler) GithubLogin(c *gin.Context) {
 	state := uuid.NewString()
 	c.SetCookie("state", state, 600, "/", "", true, true)
@@ -47,6 +40,9 @@ func (l *LoginHandler) GithubLogin(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
+// GithubOAuth2Callback processes github oauth2 callback.
+// It validates the state, fetch token and user from github, stores the user to db, generates app token.
+// A response containing app token is sent to the client.
 func (l *LoginHandler) GithubOAuth2Callback(c *gin.Context) {
 	logrus.Info("github oauth2 callback started")
 	state, _ := c.Cookie("state")
