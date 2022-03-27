@@ -27,7 +27,7 @@ jobs:
         node-version: 16.x
 
     - name: test backend
-      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+      run: go test -v -race -coverprofile=coverage.out -coverpkg=./... -covermode=atomic ./...
       working-directory: ./backend
 
     - name: test frontend
