@@ -39,59 +39,6 @@ const (
 	internalServerErrJson = `{"code":"internal_server_error", "message":"something went wrong. contact support"}`
 )
 
-func TestGetRepos(t *testing.T) {
-	t.Run("should return repos when the request is valid", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		mockGithubService := github.NewMockService(ctrl)
-		mockUserService := user.NewMockService(ctrl)
-
-		router := getRouter()
-		u := validUser()
-		repos := []github.GitRepo{{
-			Name:          repository,
-			Visibility:    visibility,
-			DefaultBranch: branch,
-		}, {
-			Name:          repository + "2",
-			Visibility:    visibility,
-			DefaultBranch: branch + "2",
-		}}
-		mockUserService.EXPECT().Get(userID).Return(u, nil)
-		mockGithubService.EXPECT().GetRepos(gomock.Any(), getOAuth2Token(u.GithubToken)).Return(repos, nil)
-		handler := NewNoteHandler(mockGithubService, mockUserService)
-
-		router.GET("/api/v1/user/github/repo", getClaimsHandler(), handler.GetRepos)
-		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/api/v1/user/github/repo", nil)
-
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusOK, response.Code)
-		assert.JSONEq(t, `[{"default_branch":"main", "name":"testrepo", "visibility":"private"},{"default_branch":"main2", "name":"testrepo2", "visibility":"private"}]`, response.Body.String())
-	})
-
-	t.Run("should return internal server error fatching repos fails", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		mockGithubService := github.NewMockService(ctrl)
-		mockUserService := user.NewMockService(ctrl)
-
-		router := getRouter()
-		u := validUser()
-		mockUserService.EXPECT().Get(userID).Return(u, nil)
-		mockGithubService.EXPECT().GetRepos(gomock.Any(), getOAuth2Token(u.GithubToken)).Return([]github.GitRepo{}, errors.New("some error"))
-		handler := NewNoteHandler(mockGithubService, mockUserService)
-
-		router.GET("/api/v1/user/github/repo", getClaimsHandler(), handler.GetRepos)
-		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/api/v1/user/github/repo", nil)
-
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
-	})
-}
-
 func TestSearchNotes(t *testing.T) {
 	t.Run("should return notes when the search request is valid", func(t *testing.T) {
 		ctrl := gomock.NewController(t)

@@ -5,15 +5,52 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/vivekweb2013/gitnoter/internal/github"
 	"github.com/vivekweb2013/gitnoter/internal/preference"
+	"github.com/vivekweb2013/gitnoter/internal/user"
 )
 
 type PreferenceHandler struct {
 	preferenceService preference.Service
+	githubService     github.Service
+	userService       user.Service
 }
 
-func NewPreferenceHandler(preferenceService preference.Service) *PreferenceHandler {
-	return &PreferenceHandler{preferenceService: preferenceService}
+func NewPreferenceHandler(preferenceService preference.Service, githubService github.Service, userService user.Service) *PreferenceHandler {
+	return &PreferenceHandler{
+		preferenceService: preferenceService,
+		githubService:     githubService,
+		userService:       userService,
+	}
+}
+
+func (p *PreferenceHandler) GetRepos(c *gin.Context) {
+	user, err := p.getUser(c)
+	if err != nil {
+		logrus.Errorf("fetching user from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	logrus.WithField("user-id", user.ID).Info("request to retrieve repos started")
+	gitRepos, err := p.githubService.GetRepos(c, parseOAuth2Token(user.GithubToken))
+	if err != nil {
+		logrus.Errorf("retrieving repos from github failed")
+		abortRequestWithError(c, err)
+		return
+	}
+
+	repos := make([]RepoPayload, 0, len(gitRepos))
+	for _, gitRepo := range gitRepos {
+		repo := RepoPayload{
+			Name:          gitRepo.Name,
+			Visibility:    gitRepo.Visibility,
+			DefaultBranch: gitRepo.DefaultBranch,
+		}
+		repos = append(repos, repo)
+	}
+
+	c.JSON(http.StatusOK, repos)
+	logrus.WithField("user-id", user.ID).Info("request to retrieve repos successful")
 }
 
 func (p *PreferenceHandler) SaveDefaultRepo(c *gin.Context) {
@@ -50,4 +87,13 @@ func (p *PreferenceHandler) SaveDefaultRepo(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 	logrus.WithField("user-id", userID).Info("request to link default repo successful")
+}
+
+func (p *PreferenceHandler) getUser(c *gin.Context) (user.User, error) {
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		logrus.Errorf("fetching user-id from context failed")
+		return user.User{}, err
+	}
+	return p.userService.Get(userID)
 }
