@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// ApplicationConfig is an application config store used to store and get the application config & dependencies.
 type ApplicationConfig struct {
 	Config            config.Config
 	DB                *gorm.DB
@@ -21,6 +22,7 @@ type ApplicationConfig struct {
 	GithubService     github.Service
 }
 
+// NewApplicationConfig creates and returns an application config store.
 func NewApplicationConfig(config config.Config, db *gorm.DB) *ApplicationConfig {
 	// create github oauth2 config
 	oauth2Config := oauth2.Config{

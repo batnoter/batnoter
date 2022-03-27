@@ -18,7 +18,7 @@ const (
 	avatarURL = "http://example.com/avatar"
 )
 
-func TestServiceImpl_Get(t *testing.T) {
+func TestGet(t *testing.T) {
 	t.Run("should retrieve a user", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -46,7 +46,7 @@ func TestServiceImpl_Get(t *testing.T) {
 	})
 }
 
-func TestServiceImpl_GetByEmail(t *testing.T) {
+func TestGetByEmail(t *testing.T) {
 	t.Run("should retrieve a user", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -74,7 +74,7 @@ func TestServiceImpl_GetByEmail(t *testing.T) {
 	})
 }
 
-func TestServiceImpl_Save(t *testing.T) {
+func TestSave(t *testing.T) {
 	t.Run("should save a valid user", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -118,7 +118,7 @@ func TestServiceImpl_Save(t *testing.T) {
 	})
 }
 
-func TestServiceImpl_Delete(t *testing.T) {
+func TestDelete(t *testing.T) {
 	t.Run("should delete a user", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()

@@ -77,7 +77,7 @@ func TestProfile(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 }

@@ -66,7 +66,7 @@ func TestGetRepos(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 	t.Run("should return unauthorized error when retrieving user fails", func(t *testing.T) {
@@ -151,7 +151,7 @@ func TestSaveDefaultRepo(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 	t.Run("should return internal server error when retring default repo from preference fails", func(t *testing.T) {
@@ -176,7 +176,7 @@ func TestSaveDefaultRepo(t *testing.T) {
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusInternalServerError, response.Code)
-		assert.JSONEq(t, internalServerErrJson, response.Body.String())
+		assert.JSONEq(t, internalServerErrJSON, response.Body.String())
 	})
 
 	t.Run("should return bad request error when repo request payload is invalid (missing repo-name)", func(t *testing.T) {

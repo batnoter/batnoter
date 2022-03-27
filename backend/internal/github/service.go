@@ -9,6 +9,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// Service represents a github service.
+// It provides methods to manage github resources using oauth2 api.
 //go:generate mockgen -source=service.go -package=github -destination=mock_service.go
 type Service interface {
 	GetAuthCodeURL(state string) string
@@ -26,6 +28,7 @@ type service struct {
 	clientBuilder ClientBuilder
 }
 
+// NewService creates and returns new github service with client builder.
 func NewService(clientBuilder ClientBuilder) Service {
 	return &service{
 		clientBuilder: clientBuilder,
@@ -40,6 +43,7 @@ const (
 	pageSize      = 20
 )
 
+// GetAuthCodeURL generates and returns an auth code url containing provided state token.
 func (s *service) GetAuthCodeURL(state string) string {
 	// AuthCodeURL receive state that is a token to protect the user from CSRF attacks.
 	// Generate a random `state` string and validate that it matches the `state` query parameter
@@ -47,6 +51,8 @@ func (s *service) GetAuthCodeURL(state string) string {
 	return s.clientBuilder.GetOAuth2Config().AuthCodeURL(state)
 }
 
+// GetAuthCodeURL fetches the oauth2 token from oauth2 provider using the authorization code.
+// It returns the oauth2 token with any error occurred while fetching the token.
 func (s *service) GetToken(ctx context.Context, code string) (oauth2.Token, error) {
 	ghToken, err := s.clientBuilder.GetOAuth2Config().Exchange(ctx, code)
 	if err != nil {
@@ -55,6 +61,8 @@ func (s *service) GetToken(ctx context.Context, code string) (oauth2.Token, erro
 	return *ghToken, nil
 }
 
+// GetUser fetches the user profile from github provider using github oauth2 token.
+// It returns the github user with any error occurred while fetching it from github.
 func (s *service) GetUser(ctx context.Context, ghToken oauth2.Token) (github.User, error) {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 
@@ -68,6 +76,8 @@ func (s *service) GetUser(ctx context.Context, ghToken oauth2.Token) (github.Use
 	return *githubUser, nil
 }
 
+// GetRepos fetches the user's repos from github provider using github oauth2 token.
+// It returns the github repos with any error occurred while fetching it from github.
 func (s *service) GetRepos(ctx context.Context, ghToken oauth2.Token) ([]GitRepo, error) {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 	opts := &github.RepositoryListOptions{
@@ -88,6 +98,8 @@ func (s *service) GetRepos(ctx context.Context, ghToken oauth2.Token) ([]GitRepo
 	return repos, nil
 }
 
+// SearchFiles fetches the files from github using github oauth2 token and filtering criteria.
+// It returns the paginated result with any error occurred while performing search on github.
 func (s *service) SearchFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps, query string, pageNo int) ([]GitFile, int, error) {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 
@@ -118,6 +130,8 @@ func (s *service) SearchFiles(ctx context.Context, ghToken oauth2.Token, filePro
 	return gitFiles, cs.GetTotal(), nil
 }
 
+// GetFile fetches the file from github using github oauth2 token and file properties.
+// It returns a single file with any error occurred while fetching it from github.
 func (s *service) GetFile(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) (GitFile, error) {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 
@@ -158,6 +172,8 @@ func (*service) getFileInternal(ctx context.Context, client *github.Client, owne
 	return gitFile, nil
 }
 
+// SaveFile stores the file on github using github oauth2 token and file properties.
+// It returns the file metadata with any error occurred while storing it on github.
 func (s *service) SaveFile(ctx context.Context, ghToken oauth2.Token, fp GitFileProps) (GitFile, error) {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 	fileContent := []byte(fp.Content)
@@ -184,6 +200,8 @@ func (s *service) SaveFile(ctx context.Context, ghToken oauth2.Token, fp GitFile
 	}, nil
 }
 
+// DeleteFile deletes the file on github using github oauth2 token and file properties.
+// It returns any error occurred while deleting the file on github.
 func (s *service) DeleteFile(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) error {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 	fileContent := []byte(fileProps.Content)

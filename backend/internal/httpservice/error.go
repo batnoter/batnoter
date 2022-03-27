@@ -9,12 +9,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// AppError represents the application error.
+// Error of this type should be used in case when client needs to be informed with the failure details.
 type AppError struct {
 	code    string
 	message string
 	cause   error
 }
 
+// NewAppError creates and returns a new app error with provided code and message.
 func NewAppError(code string, message string) error {
 	return &AppError{
 		code:    code,
@@ -22,6 +25,7 @@ func NewAppError(code string, message string) error {
 	}
 }
 
+// NewAppErrorWithCause creates and returns a new app error with cause.
 func NewAppErrorWithCause(code string, message string, cause error) error {
 	return &AppError{
 		code:    code,
@@ -37,14 +41,20 @@ func (a *AppError) Error() string {
 	return fmt.Sprintf("error code: %s, message: %s ", a.code, a.message)
 }
 
+// ErrorResponse represents the response payload of an app error.
 type ErrorResponse struct {
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message"`
 }
 
 const (
-	ErrorCodeInvalidRequest      = "invalid_request"
-	ErrorCodeValidationFailed    = "validation_failed"
+	// ErrorCodeInvalidRequest error code for invalid http request.
+	ErrorCodeInvalidRequest = "invalid_request"
+
+	// ErrorCodeValidationFailed error code for validation fails on http request payload.
+	ErrorCodeValidationFailed = "validation_failed"
+
+	// ErrorCodeInternalServerError error code for internal server error.
 	ErrorCodeInternalServerError = "internal_server_error"
 )
 

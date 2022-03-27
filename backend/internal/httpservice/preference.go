@@ -11,12 +11,14 @@ import (
 	"github.com/vivekweb2013/gitnoter/internal/user"
 )
 
+// RepoPayload represents the http request/response payload of repository entity.
 type RepoPayload struct {
 	Name          string `json:"name"`
 	Visibility    string `json:"visibility"`
 	DefaultBranch string `json:"default_branch"`
 }
 
+// Validate validates the repo http request payload.
 func (r RepoPayload) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name, validation.Required, validation.Length(1, 50)),
@@ -25,12 +27,14 @@ func (r RepoPayload) Validate() error {
 	)
 }
 
+// PreferenceHandler represents http handler for managing user preferences.
 type PreferenceHandler struct {
 	preferenceService preference.Service
 	githubService     github.Service
 	userService       user.Service
 }
 
+// NewPreferenceHandler creates and returns a new preference handler.
 func NewPreferenceHandler(preferenceService preference.Service, githubService github.Service, userService user.Service) *PreferenceHandler {
 	return &PreferenceHandler{
 		preferenceService: preferenceService,
@@ -39,6 +43,7 @@ func NewPreferenceHandler(preferenceService preference.Service, githubService gi
 	}
 }
 
+// GetRepos returns user repositories of logged in user.
 func (p *PreferenceHandler) GetRepos(c *gin.Context) {
 	user, err := p.getUser(c)
 	if err != nil {
@@ -68,6 +73,7 @@ func (p *PreferenceHandler) GetRepos(c *gin.Context) {
 	logrus.WithField("user-id", user.ID).Info("request to retrieve repos successful")
 }
 
+// SaveDefaultRepo stores the requested repo as user's default repo.
 func (p *PreferenceHandler) SaveDefaultRepo(c *gin.Context) {
 	var repoPayload RepoPayload
 	c.BindJSON(&repoPayload)
