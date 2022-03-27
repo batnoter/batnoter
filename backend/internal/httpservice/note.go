@@ -15,20 +15,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type RepoPayload struct {
-	Name          string `json:"name"`
-	Visibility    string `json:"visibility"`
-	DefaultBranch string `json:"default_branch"`
-}
-
-func (r RepoPayload) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.Name, validation.Required, validation.Length(1, 50)),
-		validation.Field(&r.Visibility, validation.Required, validation.Length(1, 20)),
-		validation.Field(&r.Visibility, validation.Length(0, 50)),
-	)
-}
-
 type NoteRequestPayload struct {
 	SHA     string `json:"sha"`
 	Content string `json:"content"`
