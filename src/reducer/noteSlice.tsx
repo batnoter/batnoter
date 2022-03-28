@@ -16,13 +16,15 @@ export interface Note {
   is_dir: boolean
 }
 
+export interface NotePage {
+  total: number
+  notes: Note[]
+}
+
 export enum NoteStatus { LOADING, IDLE, FAIL }
 
 interface NoteState {
-  page: {
-    total: number
-    notes: Note[]
-  }
+  page: NotePage
   current: Note | null
   status: NoteStatus
 }
@@ -55,9 +57,9 @@ export const getNoteAsync = createAsyncThunk(
 export const saveNoteAsync = createAsyncThunk(
   'note/saveNote',
   async ({ path, content, sha }: { path: string, content: string, sha?: string }) => {
-    const response = await saveNote(path, content, sha);
+    const response = await saveNote(path, content, sha) as Note;
     return {
-      ...response.payload,
+      ...response,
       content: content
     };
   }
@@ -82,7 +84,7 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(searchNotesAsync.fulfilled, (state, action) => {
-        state.page = action.payload;
+        state.page = action.payload as NotePage;
         state.status = NoteStatus.IDLE;
       })
       .addCase(searchNotesAsync.rejected, (state) => {
@@ -95,7 +97,7 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(getNoteAsync.fulfilled, (state, action) => {
-        state.current = action.payload
+        state.current = action.payload as Note;
         state.status = NoteStatus.IDLE;
       })
       .addCase(getNoteAsync.rejected, (state) => {
@@ -126,7 +128,7 @@ export const noteSlice = createSlice({
       });
   },
 })
-export const selectCurrentNote = (state: RootState) => state.notes.current;
-export const selectNotesPage = (state: RootState) => state.notes.page;
-export const selectNoteStatus = (state: RootState) => state.notes.status;
+export const selectCurrentNote = (state: RootState): Note | null => state.notes.current;
+export const selectNotesPage = (state: RootState): NotePage => state.notes.page;
+export const selectNoteStatus = (state: RootState): NoteStatus => state.notes.status;
 export default noteSlice.reducer;

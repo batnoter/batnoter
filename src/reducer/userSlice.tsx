@@ -7,7 +7,7 @@ export interface User {
   name: string
   location: string
   avatar_url: string
-  default_repo? : {
+  default_repo?: {
     name: string,
     visibility: string,
     default_branch: string
@@ -54,7 +54,7 @@ export const userSlice = createSlice({
       })
       .addCase(getUserProfileAsync.fulfilled, (state, action) => {
         state.status = UserStatus.IDLE;
-        state.value = action.payload;
+        state.value = action.payload as User;
       })
       .addCase(getUserProfileAsync.rejected, (state) => {
         state.status = UserStatus.FAIL;
@@ -65,6 +65,6 @@ export const userSlice = createSlice({
 })
 
 export const { userLoading, userLogout } = userSlice.actions;
-export const selectUser = (state: RootState) => state.user.value;
-export const selectUserStatus = (state: RootState) => state.user.status;
+export const selectUser = (state: RootState): User | null => state.user.value;
+export const selectUserStatus = (state: RootState): UserStatus => state.user.status;
 export default userSlice.reducer;
