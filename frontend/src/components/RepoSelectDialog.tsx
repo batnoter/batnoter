@@ -8,7 +8,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import * as React from 'react';
+import React, { ReactElement } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getUserReposAsync, PreferenceStatus, saveDefaultRepoAsync, selectPreferenceStatus, selectUserRepos } from '../reducer/preferenceSlice';
 import { getUserProfileAsync } from '../reducer/userSlice';
@@ -19,7 +19,7 @@ interface Props {
   setOpen?: (isOpen: boolean) => void
 }
 
-const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }) => {
+const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): ReactElement => {
   console.log(defaultRepo)
   const dispatch = useAppDispatch();
   React.useEffect(() => {

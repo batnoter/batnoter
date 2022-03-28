@@ -1,25 +1,26 @@
-import { Note } from "../reducer/noteSlice";
+import { Note, NotePage } from "../reducer/noteSlice";
 import { Repo } from "../reducer/preferenceSlice";
+import { User } from "../reducer/userSlice";
 
 // when we start the application using "npm start" then process.env.NODE_ENV will be automatically set to "development"
 const API_URL = "/api/v1";
 
-const getHeaders = () => {
-  return {
-    Accept: "application/json",
-    Authorization: "Bearer " + localStorage.getItem("token"),
-    "Content-Type": "application/json"
-  }
+const getHeaders = (): HeadersInit => {
+  const headers: HeadersInit = new Headers();
+  headers.set("Accept", "application/json")
+  headers.set("Authorization", "Bearer " + localStorage.getItem("token"))
+  headers.set("Content-Type", "application/json")
+  return headers
 }
 
-const catchError = (error: string) => {
+const catchError = (error: string): Promise<string> => {
   console.log(error);
   return Promise.reject(error)
 }
 
-export const getUserProfile = () => {
-  // There is no point in calling profile api without a token, since it will fail anyway due to missing token
-  // So in case of page reload etc we call this endpoint only when there is token in local-storage, which implies
+export const getUserProfile = (): Promise<User | string> => {
+  // there is no point in calling profile api without a token, since it will fail anyway due to missing token
+  // so in case of page reload etc we call this endpoint only when there is token in local-storage, which implies
   // that user has already logged-in
   return localStorage.getItem("token") ? fetch(`${API_URL}/user/me`, { headers: getHeaders() }).then(async (res) => {
     if (!res.ok) {
@@ -29,7 +30,7 @@ export const getUserProfile = () => {
   }).catch(catchError) : Promise.reject("token missing. fetching user profile failed");
 }
 
-export const getUserRepos = () => {
+export const getUserRepos = (): Promise<Repo[] | string> => {
   return fetch(`${API_URL}/user/preference/repo`, { headers: getHeaders() }).then(async (res) => {
     if (!res.ok) {
       return Promise.reject("fetching user's github repos failed")
@@ -38,7 +39,7 @@ export const getUserRepos = () => {
   }).catch(catchError);
 }
 
-export const saveDefaultRepo = (defaultRepo: Repo) => {
+export const saveDefaultRepo = (defaultRepo: Repo): Promise<undefined | string> => {
   return fetch(`${API_URL}/user/preference/repo`, {
     method: "POST",
     body: JSON.stringify(defaultRepo),
@@ -50,7 +51,7 @@ export const saveDefaultRepo = (defaultRepo: Repo) => {
   }).catch(catchError)
 }
 
-export const searchNotes = (page?: number, path?: string, query?: string) => {
+export const searchNotes = (page?: number, path?: string, query?: string): Promise<NotePage | string> => {
   return fetch(`${API_URL}/note?page=` + (page || 1) + (path ? `path=${path}` : "") + (query ? `query=${query}` : ""),
     { headers: getHeaders() }).then(async (res) => {
       if (!res.ok) {
@@ -60,7 +61,7 @@ export const searchNotes = (page?: number, path?: string, query?: string) => {
     }).catch(catchError)
 }
 
-export const getNote = (path: string) => {
+export const getNote = (path: string): Promise<Note | string> => {
   return fetch(`${API_URL}/note/` + encodeURIComponent(path), {
     headers: getHeaders()
   }).then(async (res) => {
@@ -71,7 +72,7 @@ export const getNote = (path: string) => {
   }).catch(catchError)
 }
 
-export const saveNote = (path: string, content: string, sha?: string) => {
+export const saveNote = (path: string, content: string, sha?: string): Promise<Note | string> => {
   return fetch(`${API_URL}/note/` + encodeURIComponent(path), {
     method: "POST",
     body: JSON.stringify({ sha: sha, content: content }),
@@ -84,7 +85,7 @@ export const saveNote = (path: string, content: string, sha?: string) => {
   }).catch(catchError)
 }
 
-export const deleteNote = (note: Note) => {
+export const deleteNote = (note: Note): Promise<undefined | string> => {
   return fetch(`${API_URL}/note/` + encodeURIComponent(note.path), {
     method: "DELETE",
     body: JSON.stringify({ sha: note.sha }),

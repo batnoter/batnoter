@@ -1,12 +1,12 @@
 import { Masonry } from '@mui/lab';
 import { Container } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { deleteNoteAsync, Note, searchNotesAsync, selectNotesPage } from '../reducer/noteSlice';
 import NoteCard from './NoteCard';
 
 
-const Finder = () => {
+const Finder = (): ReactElement => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
