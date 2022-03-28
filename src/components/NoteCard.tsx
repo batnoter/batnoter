@@ -1,6 +1,6 @@
 import { DeleteOutlined } from "@mui/icons-material";
 import { Card, CardContent, CardHeader, IconButton, Typography } from "@mui/material";
-import * as React from 'react';
+import React, { ReactElement } from 'react';
 import { Note } from "../reducer/noteSlice";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   handleDelete: (note: Note) => void
 }
 
-const NoteCard: React.FC<Props> = ({ note, handleDelete }) => {
+const NoteCard: React.FC<Props> = ({ note, handleDelete }): ReactElement => {
   const getFirstLine = (str: string) => {
     return str.split('\n', 1)[0]
   }

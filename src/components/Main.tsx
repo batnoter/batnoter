@@ -4,8 +4,7 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import * as React from 'react';
-import { useEffect } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { searchNotesAsync } from '../reducer/noteSlice';
@@ -13,12 +12,11 @@ import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLog
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
 import Editor from './Editor';
-import { Favorites } from './Favorites';
 import Finder from './Finder';
 import RepoSelectDialog from './RepoSelectDialog';
 import Settings from './Settings';
 
-const Main = () => {
+const Main: React.FC = (): ReactElement => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(getUserProfileAsync())
@@ -55,7 +53,6 @@ const Main = () => {
             <Routes>
               <Route path="/" element={<Finder />} ></Route>
               <Route path="/new" element={<Editor />} ></Route>
-              <Route path="/favorites" element={<Favorites />} ></Route>
               <Route path="/settings" element={<Settings user={user} />} ></Route>
             </Routes>
           </Container>
