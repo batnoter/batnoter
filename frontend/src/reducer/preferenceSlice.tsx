@@ -48,7 +48,7 @@ export const preferenceSlice = createSlice({
       })
       .addCase(getUserReposAsync.fulfilled, (state, action) => {
         state.status = PreferenceStatus.IDLE;
-        state.userRepos = action.payload;
+        state.userRepos = action.payload as Repo[];
       })
       .addCase(getUserReposAsync.rejected, (state) => {
         state.status = PreferenceStatus.FAIL;
@@ -67,6 +67,6 @@ export const preferenceSlice = createSlice({
   },
 })
 
-export const selectUserRepos = (state: RootState) => state.preference.userRepos;
-export const selectPreferenceStatus = (state: RootState) => state.preference.status;
+export const selectUserRepos = (state: RootState): Repo[] => state.preference.userRepos;
+export const selectPreferenceStatus = (state: RootState): PreferenceStatus => state.preference.status;
 export default preferenceSlice.reducer;
