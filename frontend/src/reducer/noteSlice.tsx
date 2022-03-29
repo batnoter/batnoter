@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { deleteNote, getNote, saveNote, searchNotes } from "../api/api";
+import { deleteNote, getAllNotes, getNote, getNotesTree, saveNote, searchNotes } from "../api/api";
 import { RootState } from "../app/store";
 
 export interface SearchParams {
@@ -25,6 +25,7 @@ export enum NoteStatus { LOADING, IDLE, FAIL }
 
 interface NoteState {
   page: NotePage
+  notes: Note[]
   current: Note | null
   status: NoteStatus
 }
@@ -34,22 +35,39 @@ const initialState: NoteState = {
     total: 0,
     notes: []
   },
+  notes: [],
   current: null,
   status: NoteStatus.IDLE
 }
 
 export const searchNotesAsync = createAsyncThunk(
-  'note/fetchNotes',
+  'note/searchNotes',
   async (params?: SearchParams) => {
     const response = await searchNotes(params?.page, params?.path, params?.query);
     return response;
   }
 );
 
+export const getNotesTreeAsync = createAsyncThunk(
+  'note/fetchNotesTree',
+  async () => {
+    const response = await getNotesTree();
+    return response;
+  }
+);
+
+export const getNotesAsync = createAsyncThunk(
+  'note/fetchNotes',
+  async (path: string) => {
+    const response = await getAllNotes(path);
+    return response;
+  }
+);
+
 export const getNoteAsync = createAsyncThunk(
   'note/fetchNote',
-  async (id: string) => {
-    const response = await getNote(id);
+  async (path: string) => {
+    const response = await getNote(path);
     return response;
   }
 );
@@ -89,6 +107,30 @@ export const noteSlice = createSlice({
       })
       .addCase(searchNotesAsync.rejected, (state) => {
         state.page = initialState.page;
+        state.status = NoteStatus.FAIL;
+      })
+
+      .addCase(getNotesTreeAsync.pending, (state) => {
+        state.status = NoteStatus.LOADING;
+      })
+      .addCase(getNotesTreeAsync.fulfilled, (state, action) => {
+        state.notes = action.payload as Note[];
+        state.status = NoteStatus.IDLE;
+      })
+      .addCase(getNotesTreeAsync.rejected, (state) => {
+        state.notes = initialState.notes;
+        state.status = NoteStatus.FAIL;
+      })
+
+      .addCase(getNotesAsync.pending, (state) => {
+        state.status = NoteStatus.LOADING;
+      })
+      .addCase(getNotesAsync.fulfilled, (state, action) => {
+        state.notes = action.payload as Note[];
+        state.status = NoteStatus.IDLE;
+      })
+      .addCase(getNotesAsync.rejected, (state) => {
+        state.notes = initialState.notes;
         state.status = NoteStatus.FAIL;
       })
 
