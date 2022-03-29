@@ -52,7 +52,7 @@ export const saveDefaultRepo = (defaultRepo: Repo): Promise<undefined | string> 
 }
 
 export const searchNotes = (page?: number, path?: string, query?: string): Promise<NotePage | string> => {
-  return fetch(`${API_URL}/note?page=` + (page || 1) + (path ? `path=${path}` : "") + (query ? `query=${query}` : ""),
+  return fetch(`${API_URL}/search/notes?page=` + (page || 1) + (path ? `path=${path}` : "") + (query ? `query=${query}` : ""),
     { headers: getHeaders() }).then(async (res) => {
       if (!res.ok) {
         return Promise.reject("fetching notes failed")
@@ -61,8 +61,30 @@ export const searchNotes = (page?: number, path?: string, query?: string): Promi
     }).catch(catchError)
 }
 
+export const getNotesTree = (): Promise<Note[] | string> => {
+  return fetch(`${API_URL}/tree/notes`, {
+    headers: getHeaders()
+  }).then(async (res) => {
+    if (!res.ok) {
+      return Promise.reject("fetching notes tree failed")
+    }
+    return await res.json();
+  }).catch(catchError)
+}
+
+export const getAllNotes = (path: string): Promise<Note[] | string> => {
+  return fetch(`${API_URL}/notes` + (path && "?path=" + encodeURIComponent(path)), {
+    headers: getHeaders()
+  }).then(async (res) => {
+    if (!res.ok) {
+      return Promise.reject("fetching notes failed")
+    }
+    return await res.json();
+  }).catch(catchError)
+}
+
 export const getNote = (path: string): Promise<Note | string> => {
-  return fetch(`${API_URL}/note/` + encodeURIComponent(path), {
+  return fetch(`${API_URL}/notes/` + encodeURIComponent(path), {
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
@@ -73,7 +95,7 @@ export const getNote = (path: string): Promise<Note | string> => {
 }
 
 export const saveNote = (path: string, content: string, sha?: string): Promise<Note | string> => {
-  return fetch(`${API_URL}/note/` + encodeURIComponent(path), {
+  return fetch(`${API_URL}/notes/` + encodeURIComponent(path), {
     method: "POST",
     body: JSON.stringify({ sha: sha, content: content }),
     headers: getHeaders()
@@ -86,7 +108,7 @@ export const saveNote = (path: string, content: string, sha?: string): Promise<N
 }
 
 export const deleteNote = (note: Note): Promise<undefined | string> => {
-  return fetch(`${API_URL}/note/` + encodeURIComponent(note.path), {
+  return fetch(`${API_URL}/notes/` + encodeURIComponent(note.path), {
     method: "DELETE",
     body: JSON.stringify({ sha: note.sha }),
     headers: getHeaders()
