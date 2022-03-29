@@ -81,6 +81,57 @@ func (n *NoteHandler) SearchNotes(c *gin.Context) {
 		WithField("query", query).WithField("page", page).Info("request to search & retrieve notes successful")
 }
 
+// GetNotesTree returns a complete tree of note repository as a http response.
+func (n *NoteHandler) GetNotesTree(c *gin.Context) {
+	user, err := n.getUser(c)
+	if err != nil {
+		logrus.Errorf("fetching user from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	logrus.WithField("user-id", user.ID).Info("request to retrieve tree")
+	fileProps := makeFileProps(user, NoteRequestPayload{}, "")
+	gitFiles, err := n.githubService.GetTree(c, parseOAuth2Token(user.GithubToken), fileProps)
+	if err != nil {
+		logrus.Errorf("retrieving tree on github failed")
+		abortRequestWithError(c, err)
+		return
+	}
+	notes := make([]NoteResponsePayload, 0, len(gitFiles))
+	for _, gitFile := range gitFiles {
+		note := makeNoteResponsePayload(gitFile)
+		notes = append(notes, note)
+	}
+	c.JSON(http.StatusOK, notes)
+	logrus.WithField("user-id", user.ID).Info("request to retrieve tree successful")
+}
+
+// GetAllNotes returns all the notes from a path as a http response.
+func (n *NoteHandler) GetAllNotes(c *gin.Context) {
+	path := c.Query("path")
+	user, err := n.getUser(c)
+	if err != nil {
+		logrus.Errorf("fetching user from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	logrus.WithField("user-id", user.ID).WithField("note_path", path).Info("request to retrieve notes started")
+	fileProps := makeFileProps(user, NoteRequestPayload{}, path)
+	gitFiles, err := n.githubService.GetAllFiles(c, parseOAuth2Token(user.GithubToken), fileProps)
+	if err != nil {
+		logrus.Errorf("retrieving notes from github failed")
+		abortRequestWithError(c, err)
+		return
+	}
+	notes := make([]NoteResponsePayload, 0, len(gitFiles))
+	for _, gitFile := range gitFiles {
+		note := makeNoteResponsePayload(gitFile)
+		notes = append(notes, note)
+	}
+	c.JSON(http.StatusOK, notes)
+	logrus.WithField("user-id", user.ID).WithField("note_path", path).Info("request to retrieve notes successful")
+}
+
 // GetNote returns a note with requested path as a http response.
 func (n *NoteHandler) GetNote(c *gin.Context) {
 	path := c.Param("path")
