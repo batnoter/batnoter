@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/google/go-github/v43/github"
 	"github.com/pkg/errors"
@@ -19,6 +20,8 @@ type Service interface {
 
 	GetRepos(ctx context.Context, ghToken oauth2.Token) ([]GitRepo, error)
 	SearchFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps, query string, pageNo int) ([]GitFile, int, error)
+	GetTree(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error)
+	GetAllFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error)
 	GetFile(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) (GitFile, error)
 	SaveFile(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) (GitFile, error)
 	DeleteFile(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) error
@@ -36,11 +39,13 @@ func NewService(clientBuilder ClientBuilder) Service {
 }
 
 const (
-	dirType       = "dir"
-	commitMessage = "Created with GitNoter"
-	affiliation   = "owner"
-	fileExtension = "md"
-	pageSize      = 20
+	fileType           = "file"
+	blobType           = "blob"
+	validNotePathRegex = `(?m)^[^/][/a-zA-Z0-9-]+([^/]\.md)$`
+	commitMessage      = "Created with GitNoter"
+	affiliation        = "owner"
+	fileExtension      = "md"
+	pageSize           = 20
 )
 
 // GetAuthCodeURL generates and returns an auth code url containing provided state token.
@@ -120,7 +125,12 @@ func (s *service) SearchFiles(ctx context.Context, ghToken oauth2.Token, filePro
 		return nil, 0, errors.Wrap(err, "searching on github failed")
 	}
 	gitFiles := make([]GitFile, 0, len(cs.CodeResults))
+	r, _ := regexp.Compile(validNotePathRegex)
 	for _, item := range cs.CodeResults {
+		if !r.MatchString(item.GetPath()) {
+			// ignore non md files
+			continue
+		}
 		gitFile, err := s.getFileInternal(ctx, client, fileProps.RepoDetails.Owner, fileProps.RepoDetails.Repository, fileProps.RepoDetails.DefaultBranch, item.GetPath())
 		if err != nil {
 			return nil, 0, err
@@ -128,6 +138,79 @@ func (s *service) SearchFiles(ctx context.Context, ghToken oauth2.Token, filePro
 		gitFiles = append(gitFiles, gitFile)
 	}
 	return gitFiles, cs.GetTotal(), nil
+}
+
+// GetTree fetches the file tree from github repo using github oauth2 token and file properties.
+// It returns the file tree(without file contents) along with any error occurred while fetching it from github.
+func (s *service) GetTree(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error) {
+	client := s.clientBuilder.Build(ctx, &ghToken)
+	sha := fileProps.SHA
+
+	if sha == "" {
+		// get the branch head commit
+		ref, _, err := client.Git.GetRef(ctx, fileProps.RepoDetails.Owner, fileProps.RepoDetails.Repository, fmt.Sprintf("refs/heads/%s", fileProps.RepoDetails.DefaultBranch))
+		if err != nil {
+			return []GitFile{}, errors.Wrap(err, "retrieving branch ref failed")
+		}
+		sha = *ref.Object.SHA
+	}
+
+	tree, _, err := client.Git.GetTree(ctx, fileProps.RepoDetails.Owner, fileProps.RepoDetails.Repository, sha, true)
+	if err != nil {
+		return []GitFile{}, errors.Wrap(err, "retrieving tree failed")
+	}
+
+	gitFiles := make([]GitFile, 0, len(tree.Entries))
+	r, _ := regexp.Compile(validNotePathRegex)
+	for _, item := range tree.Entries {
+		if !isFileType(item.GetType()) || !r.MatchString(item.GetPath()) {
+			// ignore directories & non md files
+			continue
+		}
+		gitFile := GitFile{
+			SHA:     item.GetSHA(),
+			Path:    item.GetPath(),
+			Content: "",
+			Size:    0,
+			IsDir:   false,
+		}
+		gitFiles = append(gitFiles, gitFile)
+	}
+	return gitFiles, nil
+}
+
+// GetAllFiles fetches all files in a directory path from github using github oauth2 token and file properties.
+// It returns files(with file contents) with any error occurred while fetching it from github.
+func (s *service) GetAllFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error) {
+	client := s.clientBuilder.Build(ctx, &ghToken)
+
+	opts := &github.RepositoryContentGetOptions{
+		Ref: fileProps.RepoDetails.DefaultBranch,
+	}
+
+	_, dc, _, err := client.Repositories.GetContents(ctx, fileProps.RepoDetails.Owner, fileProps.RepoDetails.Repository, fileProps.Path, opts)
+	if err != nil {
+		return []GitFile{}, errors.Wrap(err, "retrieving files of the given path from github failed")
+	}
+	if dc == nil {
+		return []GitFile{}, errors.New("path not found. retrieving files of the given path from github failed")
+	}
+
+	gitFiles := make([]GitFile, 0, len(dc))
+	r, _ := regexp.Compile(validNotePathRegex)
+	for _, item := range dc {
+		if !isFileType(item.GetType()) || !r.MatchString(item.GetPath()) {
+			// ignore directories & non md files
+			continue
+		}
+		gitFile, err := s.getFileInternal(ctx, client, fileProps.RepoDetails.Owner, fileProps.RepoDetails.Repository, fileProps.RepoDetails.DefaultBranch, item.GetPath())
+		if err != nil {
+			return []GitFile{}, err
+		}
+		gitFiles = append(gitFiles, gitFile)
+	}
+
+	return gitFiles, nil
 }
 
 // GetFile fetches the file from github using github oauth2 token and file properties.
@@ -164,7 +247,7 @@ func (*service) getFileInternal(ctx context.Context, client *github.Client, owne
 
 	gitFile := GitFile{
 		SHA:     fc.GetSHA(),
-		IsDir:   fc.GetType() == dirType,
+		IsDir:   false,
 		Content: contents,
 		Size:    fc.GetSize(),
 		Path:    fc.GetPath(),
@@ -218,4 +301,8 @@ func (s *service) DeleteFile(ctx context.Context, ghToken oauth2.Token, fileProp
 		return errors.Wrap(err, "deleting file from github failed")
 	}
 	return nil
+}
+
+func isFileType(typeProp string) bool {
+	return typeProp == fileType || typeProp == blobType
 }

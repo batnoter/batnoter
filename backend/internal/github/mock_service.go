@@ -50,6 +50,21 @@ func (mr *MockServiceMockRecorder) DeleteFile(ctx, ghToken, fileProps interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFile", reflect.TypeOf((*MockService)(nil).DeleteFile), ctx, ghToken, fileProps)
 }
 
+// GetAllFiles mocks base method.
+func (m *MockService) GetAllFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllFiles", ctx, ghToken, fileProps)
+	ret0, _ := ret[0].([]GitFile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllFiles indicates an expected call of GetAllFiles.
+func (mr *MockServiceMockRecorder) GetAllFiles(ctx, ghToken, fileProps interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFiles", reflect.TypeOf((*MockService)(nil).GetAllFiles), ctx, ghToken, fileProps)
+}
+
 // GetAuthCodeURL mocks base method.
 func (m *MockService) GetAuthCodeURL(state string) string {
 	m.ctrl.T.Helper()
@@ -107,6 +122,21 @@ func (m *MockService) GetToken(ctx context.Context, code string) (oauth2.Token, 
 func (mr *MockServiceMockRecorder) GetToken(ctx, code interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockService)(nil).GetToken), ctx, code)
+}
+
+// GetTree mocks base method.
+func (m *MockService) GetTree(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTree", ctx, ghToken, fileProps)
+	ret0, _ := ret[0].([]GitFile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTree indicates an expected call of GetTree.
+func (mr *MockServiceMockRecorder) GetTree(ctx, ghToken, fileProps interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTree", reflect.TypeOf((*MockService)(nil).GetTree), ctx, ghToken, fileProps)
 }
 
 // GetUser mocks base method.
