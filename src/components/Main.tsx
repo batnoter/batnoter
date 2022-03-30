@@ -7,7 +7,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import React, { ReactElement, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { searchNotesAsync } from '../reducer/noteSlice';
+import { getNotesAsync, getNotesTreeAsync } from '../reducer/noteSlice';
 import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout, UserStatus } from '../reducer/userSlice';
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
@@ -32,9 +32,12 @@ const Main: React.FC = (): ReactElement => {
   }
 
   useEffect(() => {
-    if (userStatus == UserStatus.IDLE && user != null) {
-      dispatch(searchNotesAsync())
-    }
+    (async () => {
+      if (userStatus == UserStatus.IDLE && user != null) {
+        await dispatch(getNotesTreeAsync())
+        dispatch(getNotesAsync(""))
+      }
+    })()
   }, [userStatus, user])
 
   return (
@@ -48,7 +51,7 @@ const Main: React.FC = (): ReactElement => {
             ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
         }}>
           <Toolbar />
-          <RepoSelectDialog open={user != null && !user?.default_repo?.name}></RepoSelectDialog>
+          {user != null && !user?.default_repo?.name && <RepoSelectDialog open={true}></RepoSelectDialog>}
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Routes>
               <Route path="/" element={<Finder />} ></Route>

@@ -1,11 +1,12 @@
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import HelpCenterIcon from '@mui/icons-material/HelpCenter';
-import NotesIcon from '@mui/icons-material/Notes';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { Divider, List, ListItemButton, ListItemIcon, ListItemText, styled, Toolbar } from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { TreeItem, TreeView } from '@mui/lab';
+import { styled, Toolbar } from '@mui/material';
 import MuiDrawer from '@mui/material/Drawer';
 import React, { ReactElement } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAppSelector } from '../app/hooks';
+import { selectNotesTree, Tree } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
 
 interface Props {
@@ -14,37 +15,51 @@ interface Props {
 
 export const DRAWER_WIDTH = 240;
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme }) => ({
+  () => ({
     '& .MuiDrawer-paper': {
       boxSizing: 'border-box',
       position: 'relative',
       whiteSpace: 'nowrap',
       width: DRAWER_WIDTH,
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      [theme.breakpoints.down('sm')]: {
-        width: theme.spacing(9),
-      },
     },
   }),
-);
+)
 
-const AppDrawer: React.FC<Props> = ({ user }): ReactElement => {
-  const { pathname } = useLocation();
+const AppDrawer: React.FC<Props> = (): ReactElement => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const getAllSubpath = (path: string): string[] => {
+    const subpath = path.split('/').map((s, i) => path.split('/').slice(0, i + 1).join('/'));
+    subpath.push('/');
+    return subpath;
+  }
+  const path = decodeURIComponent(searchParams.get('path') || "%2F");
+  const [expanded, setExpanded] = React.useState<string[]>(getAllSubpath(path));
+  const tree = useAppSelector(selectNotesTree);
+
+  const handleNodeSelect = (e: React.SyntheticEvent, selectedPath: string) => {
+    !selectedPath.endsWith('.md') && navigate("/?path=" + encodeURIComponent(selectedPath));
+  }
+
+  const renderTree = (t: Tree) => {
+    return (<TreeItem key={t.path} nodeId={t.path || "/"} label={t.name}>
+      {Array.isArray(t.children)
+        ? t.children.map((c) => renderTree(c))
+        : null}
+    </TreeItem>)
+  }
+  const treeJSX = renderTree(tree);
+
   return (
     <Drawer variant="permanent">
       <Toolbar />
-      <List component="nav">
-        <ListItemButton component={Link} to={"/"} selected={pathname === '/'}> <ListItemIcon> <NotesIcon /> </ListItemIcon><ListItemText primary="My Notes" /></ListItemButton>
-        <ListItemButton component={Link} to={"/new"} selected={pathname === '/new'}> <ListItemIcon> <AddCircleIcon /> </ListItemIcon><ListItemText primary="Create Note" /></ListItemButton>
-        <ListItemButton component={Link} to={"/settings"} selected={pathname === '/settings'}> <ListItemIcon> <SettingsIcon /> </ListItemIcon><ListItemText primary="Settings" /></ListItemButton>
-        <ListItemButton component={Link} to={"/help"} selected={pathname === '/help'}> <ListItemIcon> <HelpCenterIcon /> </ListItemIcon> <ListItemText primary="Help" /> </ListItemButton>
-        <Divider sx={{ my: 1 }} />
-      </List>
+      <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}
+        expanded={expanded} selected={path} onNodeSelect={handleNodeSelect}
+        onNodeToggle={(e, ids) => setExpanded(ids)} sx={{ flexGrow: 1, minWidth: "max-content", width: "100%" }}>
+        {treeJSX}
+      </TreeView>
     </Drawer>
   )
 }
 
-export default AppDrawer
+export default AppDrawer;
