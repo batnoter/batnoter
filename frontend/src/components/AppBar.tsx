@@ -1,4 +1,5 @@
 import { Login as LoginIcon } from '@mui/icons-material';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { Avatar, Box, Button, CircularProgress, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import React, { ReactElement } from 'react';
@@ -31,10 +32,16 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
           GIT NOTER
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box> {user == null ?
-          (!isLoading ? <Button color="inherit" href="/api/v1/oauth2/login/github" endIcon={<LoginIcon />}
-            onClick={() => setUserStatus(UserStatus.LOADING)}>Login</Button> : <CircularProgress color="inherit" />)
+          (
+            !isLoading ?
+              <Button color="inherit" href="/api/v1/oauth2/login/github" endIcon={<LoginIcon />}
+                onClick={() => setUserStatus(UserStatus.LOADING)}>Login</Button>
+              : <CircularProgress color="inherit" />
+          )
           :
           <>
+            <Button color="inherit" component={Link} to={"/new"} startIcon={<AddCircleIcon />}
+              onClick={() => setUserStatus(UserStatus.LOADING)}>Create Note</Button>
             <Avatar onClick={handleMenu} alt={user.name} src={user.avatar_url} sx={{ "cursor": "pointer" }}></Avatar>
             <Menu autoFocus={false} sx={{ mt: '5px' }} id="menu-appbar" anchorEl={anchorEl} anchorOrigin={{
               vertical: 'bottom', horizontal: 'right'
