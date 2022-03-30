@@ -20,7 +20,6 @@ interface Props {
 }
 
 const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): ReactElement => {
-  console.log(defaultRepo)
   const dispatch = useAppDispatch();
   React.useEffect(() => {
     dispatch(getUserReposAsync())
