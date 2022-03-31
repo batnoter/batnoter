@@ -49,10 +49,6 @@ func NewNoteHandler(githubService github.Service, userService user.Service) *Not
 	return &NoteHandler{githubService: githubService, userService: userService}
 }
 
-const (
-	notePathRegex = `(?m)^[^/][/a-zA-Z0-9-]+([^/]\.md)$`
-)
-
 // SearchNotes performs a note search operation with specified filter criteria.
 // It returns the result of search operation as a http response.
 func (n *NoteHandler) SearchNotes(c *gin.Context) {
@@ -135,7 +131,7 @@ func (n *NoteHandler) GetAllNotes(c *gin.Context) {
 // GetNote returns a note with requested path as a http response.
 func (n *NoteHandler) GetNote(c *gin.Context) {
 	path := c.Param("path")
-	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(notePathRegex))); err != nil {
+	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(github.ValidFilePathRegex))); err != nil {
 		abortRequestWithError(c, NewAppError(ErrorCodeValidationFailed, fmt.Sprintf("path: %s", err.Error())))
 		return
 	}
@@ -160,7 +156,7 @@ func (n *NoteHandler) GetNote(c *gin.Context) {
 // SaveNote stores the note and returns the metadata as a http response.
 func (n *NoteHandler) SaveNote(c *gin.Context) {
 	path := c.Param("path")
-	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(notePathRegex))); err != nil {
+	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(github.ValidFilePathRegex))); err != nil {
 		abortRequestWithError(c, NewAppError(ErrorCodeValidationFailed, fmt.Sprintf("path: %s", err.Error())))
 		return
 	}
@@ -191,7 +187,7 @@ func (n *NoteHandler) SaveNote(c *gin.Context) {
 // DeleteNote deletes a note with requested path.
 func (n *NoteHandler) DeleteNote(c *gin.Context) {
 	path := c.Param("path")
-	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(notePathRegex))); err != nil {
+	if err := validation.Validate(path, validation.Required, validation.Match(regexp.MustCompile(github.ValidFilePathRegex))); err != nil {
 		abortRequestWithError(c, NewAppError(ErrorCodeValidationFailed, fmt.Sprintf("path: %s", err.Error())))
 		return
 	}

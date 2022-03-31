@@ -41,11 +41,11 @@ func NewService(clientBuilder ClientBuilder) Service {
 const (
 	fileType           = "file"
 	blobType           = "blob"
-	validNotePathRegex = `(?m)^[^/][/a-zA-Z0-9-]+([^/]\.md)$`
 	commitMessage      = "Created with GitNoter"
 	affiliation        = "owner"
 	fileExtension      = "md"
 	pageSize           = 20
+	ValidFilePathRegex = `(?m)^([a-zA-Z0-9-]([/][a-zA-Z0-9-])?[^\S\r\n]?[a-zA-Z0-9-]?)+(\.md)$`
 )
 
 // GetAuthCodeURL generates and returns an auth code url containing provided state token.
@@ -125,7 +125,7 @@ func (s *service) SearchFiles(ctx context.Context, ghToken oauth2.Token, filePro
 		return nil, 0, errors.Wrap(err, "searching on github failed")
 	}
 	gitFiles := make([]GitFile, 0, len(cs.CodeResults))
-	r, _ := regexp.Compile(validNotePathRegex)
+	r, _ := regexp.Compile(ValidFilePathRegex)
 	for _, item := range cs.CodeResults {
 		if !r.MatchString(item.GetPath()) {
 			// ignore non md files
@@ -161,7 +161,7 @@ func (s *service) GetTree(ctx context.Context, ghToken oauth2.Token, fileProps G
 	}
 
 	gitFiles := make([]GitFile, 0, len(tree.Entries))
-	r, _ := regexp.Compile(validNotePathRegex)
+	r, _ := regexp.Compile(ValidFilePathRegex)
 	for _, item := range tree.Entries {
 		if !isFileType(item.GetType()) || !r.MatchString(item.GetPath()) {
 			// ignore directories & non md files
@@ -197,7 +197,7 @@ func (s *service) GetAllFiles(ctx context.Context, ghToken oauth2.Token, filePro
 	}
 
 	gitFiles := make([]GitFile, 0, len(dc))
-	r, _ := regexp.Compile(validNotePathRegex)
+	r, _ := regexp.Compile(ValidFilePathRegex)
 	for _, item := range dc {
 		if !isFileType(item.GetType()) || !r.MatchString(item.GetPath()) {
 			// ignore directories & non md files
