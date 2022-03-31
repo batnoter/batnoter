@@ -60,7 +60,7 @@ export const searchNotesAsync = createAsyncThunk(
 export const getNotesTreeAsync = createAsyncThunk(
   'note/fetchNotesTree',
   async () => {
-    const response = await getNotesTree();
+    const response = await getNotesTree() as Note[];
     return response;
   }
 );
@@ -68,7 +68,7 @@ export const getNotesTreeAsync = createAsyncThunk(
 export const getNotesAsync = createAsyncThunk(
   'note/fetchNotes',
   async (path: string) => {
-    const response = await getAllNotes(path);
+    const response = await getAllNotes(path) as Note[];
     return response;
   }, {
   condition: (path, { getState }) => {
@@ -83,7 +83,7 @@ export const getNotesAsync = createAsyncThunk(
 export const getNoteAsync = createAsyncThunk(
   'note/fetchNote',
   async (path: string) => {
-    const response = await getNote(path);
+    const response = await getNote(path) as Note;
     return response;
   }
 );
@@ -132,7 +132,7 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(getNotesTreeAsync.fulfilled, (state, action) => {
-        state.page.notes = action.payload as Note[];
+        state.page.notes = action.payload;
         const tree = TreeUtil.parse(initialState.tree, state.page.notes, false);
         state.tree = tree;
         state.status = NoteStatus.IDLE;
@@ -146,7 +146,7 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(getNotesAsync.fulfilled, (state, action) => {
-        state.page.notes = action.payload as Note[];
+        state.page.notes = action.payload;
         const tree = TreeUtil.parse(state.tree, state.page.notes, true);
         state.tree = tree;
         state.status = NoteStatus.IDLE;
@@ -161,7 +161,9 @@ export const noteSlice = createSlice({
         state.status = NoteStatus.LOADING;
       })
       .addCase(getNoteAsync.fulfilled, (state, action) => {
-        state.current = action.payload as Note;
+        state.current = action.payload;
+        const tree = TreeUtil.parse(state.tree, [action.payload], null);
+        state.tree = tree;
         state.status = NoteStatus.IDLE;
       })
       .addCase(getNoteAsync.rejected, (state) => {
@@ -174,6 +176,8 @@ export const noteSlice = createSlice({
       .addCase(saveNoteAsync.fulfilled, (state, action) => {
         state.page.notes = state.page.notes.filter(n => n.sha !== action.payload.sha)
         state.page.notes.push(action.payload)
+        const tree = TreeUtil.parse(state.tree, [action.payload], null);
+        state.tree = tree;
         state.status = NoteStatus.IDLE;
       })
       .addCase(saveNoteAsync.rejected, (state) => {
@@ -195,10 +199,10 @@ export const noteSlice = createSlice({
 })
 
 export class TreeUtil {
-  static parse(seedTree: Tree, notes: Note[], cache: boolean): Tree {
+  static parse(seedTree: Tree, notes: Note[], cache: boolean | null): Tree {
     const tree: Tree = notes.reduce((r, n) => {
-      const path = n.path.split('/')
-      const fileName = path.pop() || ""
+      const path = n.path.split('/');
+      const fileName = path.pop() || "";
       const final = path.reduce((o, name) => {
         let temp = (o.children = o.children || []).find(q => q.name === name);
         if (!temp) o.children.push(temp = {
@@ -206,7 +210,9 @@ export class TreeUtil {
           path: o.path ? o.path + '/' + name : name,
           is_dir: true
         });
-        temp.cached = cache;
+        if (cache !== null) {
+          temp.cached = cache
+        }
         return temp;
       }, r);
 
@@ -214,11 +220,13 @@ export class TreeUtil {
       final.children = final.children || [];
       const index = final.children.findIndex(o => o.path === n.path);
       index > -1 && (final.children[index] = file) || final.children.push(file);
-      final.cached = cache
+      if (cache !== null) {
+        final.cached = cache;
+      }
       return r;
     }, { ...seedTree });
 
-    return tree
+    return tree;
   }
 
   static searchNode(root: Tree, path: string): Tree | null {
@@ -238,15 +246,23 @@ export class TreeUtil {
 
   static deleteNode(root: Tree, path: string) {
     if (!root.children) {
-      return
+      return;
     }
     for (let i = 0; i < root.children.length; i++) {
       if (root.children[i].path == path) {
-        root.children.splice(i, 1)
-        break
+        root.children.splice(i, 1);
+        break;
       }
-      TreeUtil.deleteNode(root.children[i], path)
+      TreeUtil.deleteNode(root.children[i], path);
     }
+  }
+
+  static getChildDirs(tree: Tree, path: string): string[] {
+    const node = TreeUtil.searchNode(tree, path)
+    if (!node?.children) {
+      return [];
+    }
+    return node.children.filter(c => c.is_dir).map(c => c.name);
   }
 }
 
