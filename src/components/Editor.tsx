@@ -1,10 +1,15 @@
 
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
-import { Autocomplete, Breadcrumbs, Button, Container, Link, TextField, Typography } from '@mui/material'
-import React, { FormEvent, ReactElement, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '../app/hooks'
-import { saveNoteAsync, selectNotesTree, TreeUtil } from '../reducer/noteSlice'
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import { Autocomplete, Breadcrumbs, Button, Container, Link, TextField, Typography } from '@mui/material';
+import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
+import ReactMarkdown from "react-markdown";
+import MDEditor from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
+import { useNavigate } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { saveNoteAsync, selectNotesTree, TreeUtil } from '../reducer/noteSlice';
+import './Editor.scss';
 
 const Editor: React.FC = (): ReactElement => {
   const VALID_DIR_PATH_REGEX = /^[^/.]([/a-zA-Z0-9-]|[^\S\r\n])+([^/])$/gm;
@@ -35,13 +40,13 @@ const Editor: React.FC = (): ReactElement => {
 
     const autoSelectedDirPath = dirPathArray.join('/')
     const dirPath = autoSelectedDirPath + (endDir === "" ? "" : (autoSelectedDirPath === "" ? endDir : '/' + endDir))
-    if (dirPath != "" && !VALID_DIR_PATH_REGEX.test(dirPath)) {
+    if (dirPath != "" && dirPath.match(VALID_DIR_PATH_REGEX)) {
       setDirPathError(true)
       return
     }
 
     const filename = title + '.md';
-    if (!VALID_FILENAME_REGEX.test(filename)) {
+    if (!filename.match(VALID_FILENAME_REGEX)) {
       setTitleError(true)
       return
     }
@@ -104,9 +109,12 @@ const Editor: React.FC = (): ReactElement => {
           onChange={(e) => { setTitleError(false); setTitle(e.target.value) }} label="Note Title"
           variant="outlined" fullWidth required error={titleError}
         />
-        <TextField sx={{ my: 2, display: "block" }}
-          onChange={(e) => { setContentError(false); setContent(e.target.value) }} error={contentError} label="Content" variant="outlined" multiline rows={10} fullWidth required
-        />
+
+        <MDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
+          renderHTML={text => <ReactMarkdown remarkPlugins={[remarkGfm]} >{text}</ReactMarkdown>}
+          placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
+          onChange={(h, t) => { setContentError(false); setContent(t?.target.value || '') }} />
+
         <Button type="submit" variant="contained" endIcon={<KeyboardArrowRightIcon />} sx={{ float: 'right' }}> SAVE </Button>
       </form>
 

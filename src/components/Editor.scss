@@ -1,0 +1,24 @@
+.batnoter-md-editor.rc-md-editor {
+  margin: 16px 0;
+  height: 275px;
+  border-color: rgba(0, 0, 0, 0.23);
+  border-radius: 4px;
+  & > .rc-md-navigation {
+    min-height: 56px;
+    border-radius: 4px 4px 0 0;
+
+    .button-wrap {
+      .button {
+        margin-left: 5px;
+        margin-right: 5px;
+      }
+      .rmel-iconfont {
+        font-size: 22px;
+      }
+    } 
+  }
+
+  &.error {
+    border-color: red;
+  }
+}
