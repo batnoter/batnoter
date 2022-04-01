@@ -6,7 +6,7 @@ import MuiDrawer from '@mui/material/Drawer';
 import React, { ReactElement } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
-import { selectNotesTree, Tree } from '../reducer/noteSlice';
+import { selectNotesTree, TreeNode } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
 
 interface Props {
@@ -41,8 +41,8 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
     !selectedPath.endsWith('.md') && navigate("/?path=" + encodeURIComponent(selectedPath));
   }
 
-  const renderTree = (t: Tree) => {
-    return (<TreeItem key={t.path} nodeId={t.path || "/"} label={t.name}>
+  const renderTree = (t: TreeNode) => {
+    return (<TreeItem key={t.path} nodeId={t.path || "/"} label={t.name.replace(/(\.md)$/i, '')}>
       {Array.isArray(t.children)
         ? t.children.map((c) => renderTree(c))
         : null}
