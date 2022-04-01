@@ -3,3 +3,13 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom/extend-expect';
+import React from "react";
+
+
+jest.mock("react-markdown", () => (props: { children: React.ReactNode }) =>
+  jest.fn(() => <>{props.children}</>),
+);
+
+jest.mock("remark-gfm", () =>
+  jest.fn(() => {/* */ }),
+);
