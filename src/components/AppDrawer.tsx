@@ -1,5 +1,8 @@
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
+import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import { TreeItem, TreeView } from '@mui/lab';
 import { styled, Toolbar } from '@mui/material';
 import MuiDrawer from '@mui/material/Drawer';
@@ -44,9 +47,12 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   }
 
   const renderTree = (t: TreeNode) => {
-    return (<TreeItem key={t.path} nodeId={t.path || "/"} label={getTitleFromFilename(t.name)}>
-      {Array.isArray(t.children) ? t.children.map((c) => renderTree(c)) : null}
-    </TreeItem>)
+    return (
+      <TreeItem key={t.path} nodeId={t.path || "/"} label={getTitleFromFilename(t.name)}
+        endIcon={<ArticleOutlinedIcon />} expandIcon={<FolderOutlinedIcon />} collapseIcon={<FolderOpenOutlinedIcon />}>
+        {Array.isArray(t.children) ? t.children.map((c) => renderTree(c)) : null}
+      </TreeItem>
+    )
   }
   const treeJSX = renderTree(tree);
 
