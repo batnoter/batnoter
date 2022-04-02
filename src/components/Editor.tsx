@@ -1,4 +1,5 @@
 
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Autocomplete, Breadcrumbs, Button, Container, Link, TextField } from '@mui/material';
 import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
@@ -136,7 +137,18 @@ const Editor: React.FC = (): ReactElement => {
 
         <MDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
           value={content}
-          renderHTML={text => <ReactMarkdown remarkPlugins={[remarkGfm]} >{text}</ReactMarkdown>}
+          renderHTML={text => <ReactMarkdown components={{
+            code({ inline, className, children, ...props }) {
+              return (
+                <>
+                  <code className={className} {...props}>{children}</code>
+                  {!inline && <ContentCopyOutlinedIcon style={{ right: 5, position: "absolute", cursor: 'pointer' }}
+                    onClick={() => { navigator.clipboard.writeText(String(children)) }} />}
+                </>
+              )
+            }
+          }}
+            remarkPlugins={[remarkGfm]} >{text}</ReactMarkdown>}
           placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
           onChange={({ text }) => { setContentError(false); setContent(text) }} />
 
