@@ -18,6 +18,20 @@
     } 
   }
 
+  .editor-container .section-container .custom-html-style {
+    position: relative;
+    pre {
+      display: flex;
+    }
+    svg {
+      background-color: #f5f5f5;
+      opacity: 0.3;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
   &.error {
     border-color: red;
   }
