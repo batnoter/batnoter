@@ -218,7 +218,8 @@ export class TreeUtil {
           is_dir: true,
           cached: !!cache
         });
-        cache != null && (temp.cached = cache)
+        cache != null && (temp.cached = cache);
+        o.children.sort((a, b) => (Number(b.is_dir) - Number(a.is_dir)) || a.path.localeCompare(b.path))
         return temp;
       }, r);
 
@@ -226,6 +227,7 @@ export class TreeUtil {
       final.children = final.children || [];
       const index = final.children.findIndex(o => o.path === n.path);
       index > -1 && (final.children[index] = file) || final.children.push(file);
+      final.children.sort((a, b) => (Number(b.is_dir) - Number(a.is_dir)) || a.path.localeCompare(b.path))
       cache != null && (final.cached = cache)
       return r;
     }, { ...seedTree });
