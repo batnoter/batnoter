@@ -52,7 +52,7 @@ const Editor: React.FC = (): ReactElement => {
       setDirPathArray(pathArray)
       setSHA(note?.sha || '');
       setTitle(getTitleFromFilename(note.name));
-      content == '' && setContent(note?.content || '');
+      setContent(note?.content || '');
     }
     setPathAutoCompleteOptions(defaultPathOptions);
   }, [tree, path, pathname])
