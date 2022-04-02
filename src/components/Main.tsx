@@ -55,7 +55,8 @@ const Main: React.FC = (): ReactElement => {
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Routes>
               <Route path="/" element={<Finder />} ></Route>
-              <Route path="/new" element={<Editor />} ></Route>
+              <Route path="/new" element={<Editor key={'new'} />} ></Route>
+              <Route path="/edit/:path" element={<Editor key="edit" />} ></Route>
               <Route path="/settings" element={<Settings user={user} />} ></Route>
             </Routes>
           </Container>

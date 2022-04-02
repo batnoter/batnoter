@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 import { selectNotesTree, TreeNode } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
+import { getTitleFromFilename } from '../util/util';
 
 interface Props {
   user: User | null
@@ -30,7 +31,7 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   const [searchParams] = useSearchParams();
   const getAllSubpath = (path: string): string[] => {
     const subpath = path.split('/').map((s, i) => path.split('/').slice(0, i + 1).join('/'));
-    subpath.push('/');
+    subpath.push('/'); // add root path
     return subpath;
   }
   const path = decodeURIComponent(searchParams.get('path') || "%2F");
@@ -38,14 +39,13 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   const tree = useAppSelector(selectNotesTree);
 
   const handleNodeSelect = (e: React.SyntheticEvent, selectedPath: string) => {
-    !selectedPath.endsWith('.md') && navigate("/?path=" + encodeURIComponent(selectedPath));
+    selectedPath.endsWith('.md') ? navigate("/edit/" + encodeURIComponent(selectedPath))
+      : navigate("/?path=" + encodeURIComponent(selectedPath));
   }
 
   const renderTree = (t: TreeNode) => {
-    return (<TreeItem key={t.path} nodeId={t.path || "/"} label={t.name.replace(/(\.md)$/i, '')}>
-      {Array.isArray(t.children)
-        ? t.children.map((c) => renderTree(c))
-        : null}
+    return (<TreeItem key={t.path} nodeId={t.path || "/"} label={getTitleFromFilename(t.name)}>
+      {Array.isArray(t.children) ? t.children.map((c) => renderTree(c)) : null}
     </TreeItem>)
   }
   const treeJSX = renderTree(tree);
