@@ -222,7 +222,7 @@ export class TreeUtil {
         return temp;
       }, r);
 
-      const file = { ...n, name: fileName, cached: !!cache }
+      const file = { ...n, name: fileName, cached: !!n.content }
       final.children = final.children || [];
       const index = final.children.findIndex(o => o.path === n.path);
       index > -1 && (final.children[index] = file) || final.children.push(file);
