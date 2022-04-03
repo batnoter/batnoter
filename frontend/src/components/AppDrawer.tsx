@@ -4,8 +4,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import { TreeView } from '@mui/lab';
-import { styled, Toolbar } from '@mui/material';
-import MuiDrawer from '@mui/material/Drawer';
+import { Drawer, Toolbar } from '@mui/material';
 import React, { ReactElement, SyntheticEvent, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
@@ -19,16 +18,6 @@ interface Props {
 }
 
 export const DRAWER_WIDTH = 240;
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  () => ({
-    '& .MuiDrawer-paper': {
-      boxSizing: 'border-box',
-      position: 'relative',
-      whiteSpace: 'nowrap',
-      width: DRAWER_WIDTH,
-    },
-  }),
-)
 
 const AppDrawer: React.FC<Props> = (): ReactElement => {
   const navigate = useNavigate();
@@ -80,7 +69,7 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   const treeJSX = renderTree(tree);
 
   return (
-    <Drawer variant="permanent">
+    <Drawer variant="permanent" sx={{ width: DRAWER_WIDTH, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}>
       <Toolbar />
       <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}
         expanded={expanded} selected={path} onNodeSelect={handleNodeSelect}
