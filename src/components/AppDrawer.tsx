@@ -3,15 +3,16 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
-import { TreeItem, TreeView } from '@mui/lab';
+import { TreeView } from '@mui/lab';
 import { styled, Toolbar } from '@mui/material';
 import MuiDrawer from '@mui/material/Drawer';
-import React, { ReactElement } from 'react';
+import React, { ReactElement, SyntheticEvent, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAppSelector } from '../app/hooks';
-import { selectNotesTree, TreeNode } from '../reducer/noteSlice';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { deleteNoteAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
-import { getTitleFromFilename } from '../util/util';
+import { getTitleFromFilename, isFilePath, splitPath } from '../util/util';
+import StyledTreeItem from './StyledTreeItem';
 
 interface Props {
   user: User | null
@@ -31,9 +32,10 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 const AppDrawer: React.FC<Props> = (): ReactElement => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const getAllSubpath = (path: string): string[] => {
-    const subpath = path.split('/').map((s, i) => path.split('/').slice(0, i + 1).join('/'));
+    const subpath = splitPath(path).map((s, i) => path.split('/').slice(0, i + 1).join('/'));
     subpath.push('/'); // add root path
     return subpath;
   }
@@ -41,17 +43,38 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   const [expanded, setExpanded] = React.useState<string[]>(getAllSubpath(path));
   const tree = useAppSelector(selectNotesTree);
 
-  const handleNodeSelect = (e: React.SyntheticEvent, selectedPath: string) => {
-    selectedPath.endsWith('.md') ? navigate("/edit/" + encodeURIComponent(selectedPath))
-      : navigate("/?path=" + encodeURIComponent(selectedPath));
+  useEffect(() => {
+    setExpanded(getAllSubpath(path));
+  }, [tree, path])
+
+  const handleNodeSelect = (e: React.SyntheticEvent, path: string) => {
+    isFilePath(path) ? navigate("/view?path=" + encodeURIComponent(path))
+      : navigate("/?path=" + encodeURIComponent(path));
+  }
+
+  const handleCreate = (e: SyntheticEvent, dirPath: string) => {
+    e.stopPropagation();
+    navigate(`/new?path=${dirPath}`);
+  }
+
+  const handleEdit = (e: SyntheticEvent, filepath: string) => {
+    e.stopPropagation();
+    navigate("/edit?path=" + encodeURIComponent(filepath));
+  }
+
+  const handleDelete = (e: SyntheticEvent, filepath: string) => {
+    e.stopPropagation();
+    const n = TreeUtil.searchNode(tree, filepath)
+    n && dispatch(deleteNoteAsync(n));
   }
 
   const renderTree = (t: TreeNode) => {
     return (
-      <TreeItem key={t.path} nodeId={t.path || "/"} label={getTitleFromFilename(t.name)}
-        endIcon={<ArticleOutlinedIcon />} expandIcon={<FolderOutlinedIcon />} collapseIcon={<FolderOpenOutlinedIcon />}>
+      <StyledTreeItem key={t.path} nodeId={t.path || "/"} label={getTitleFromFilename(t.name)} isDir={t.is_dir}
+        endIcon={<ArticleOutlinedIcon />} expandIcon={<FolderOutlinedIcon />} collapseIcon={<FolderOpenOutlinedIcon />}
+        handleEdit={handleEdit} handleDelete={handleDelete} handleCreate={handleCreate}>
         {Array.isArray(t.children) ? t.children.map((c) => renderTree(c)) : null}
-      </TreeItem>
+      </StyledTreeItem>
     )
   }
   const treeJSX = renderTree(tree);

@@ -4,6 +4,7 @@ import React, { ReactElement, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { deleteNoteAsync, getNotesAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
+import { getDecodedPath } from '../util/util';
 import NoteCard from './NoteCard';
 
 const Finder = (): ReactElement => {
@@ -11,19 +12,18 @@ const Finder = (): ReactElement => {
   const dispatch = useAppDispatch();
   const tree = useAppSelector(selectNotesTree);
   const [searchParams] = useSearchParams();
-  let path = decodeURIComponent(searchParams.get('path') || "");
-  path = path === "/" ? "" : path;
+  const path = getDecodedPath(searchParams.get('path'))
 
   useEffect(() => {
     dispatch(getNotesAsync(path))
-  }, [path, tree])
+  }, [tree, path])
 
   const handleDelete = (note: TreeNode) => {
     dispatch(deleteNoteAsync(note));
   }
 
   const handleEdit = (note: TreeNode) => {
-    navigate("/edit/" + encodeURIComponent(note.path));
+    navigate("/edit?path=" + encodeURIComponent(note.path));
   }
 
   const getChildren = (path: string): TreeNode[] | undefined => {
