@@ -6,21 +6,26 @@ import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
 import ReactMarkdown from "react-markdown";
 import MDEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getNoteAsync, saveNoteAsync, selectNotesTree, TreeUtil } from '../reducer/noteSlice';
-import { getTitleFromFilename } from '../util/util';
+import { appendPath, getDecodedPath, getFilenameFromTitle, getTitleFromFilename, splitPath } from '../util/util';
 import './Editor.scss';
 
+const VALID_DIR_PATH_REGEX = /^[^/.]([/a-zA-Z0-9-]|[^\S\r\n])+([^/])$/gm;
+const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
+
 const Editor: React.FC = (): ReactElement => {
-  const VALID_DIR_PATH_REGEX = /^[^/.]([/a-zA-Z0-9-]|[^\S\r\n])+([^/])$/gm;
-  const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  const editMode = pathname.startsWith('/edit');
+  const path = getDecodedPath(searchParams.get('path'));
   const tree = useAppSelector(selectNotesTree);
 
-  const [editMode, setEditMode] = useState(false);
   const [sha, setSHA] = useState('');
   const [title, setTitle] = useState('');
   const [titleError, setTitleError] = useState(false);
@@ -29,34 +34,27 @@ const Editor: React.FC = (): ReactElement => {
   const [endDir, setEndDir] = useState('');
   const [dirPathArray, setDirPathArray] = useState([] as string[]);
   const [dirPathError, setDirPathError] = useState(false);
-
-  const defaultPathOptions = TreeUtil.getChildDirs(tree, '');
-  const [pathAutoCompleteOptions, setPathAutoCompleteOptions] = useState(defaultPathOptions);
-
-  const { pathname } = useLocation();
-  const { path } = useParams();
+  const [pathAutoCompleteOptions, setPathAutoCompleteOptions] = useState(TreeUtil.getChildDirs(tree, path));
 
   useEffect(() => {
-    if (path != null && pathname.startsWith('/edit/')) {
-      setEditMode(true);
-      const decodedPath = decodeURIComponent(path);
-      const note = TreeUtil.searchNode(tree, decodedPath);
-      if (note == null) {
-        return;
-      }
-      if (!note.cached) {
-        dispatch(getNoteAsync(note.path));
-        return;
-      }
-      const pathArray = path.split('/');
-      pathArray.pop(); // remove the filename from path
-      setDirPathArray(pathArray)
-      setSHA(note?.sha || '');
-      setTitle(getTitleFromFilename(note.name));
-      setContent(note?.content || '');
+    const treeNode = TreeUtil.searchNode(tree, path);
+    const dirPathArray = splitPath(path);
+    editMode && dirPathArray.pop(); // remove the filename from path
+    setDirPathArray(dirPathArray);
+    setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, path));
+
+    if (treeNode == null || treeNode.is_dir) {
+      return;
     }
-    setPathAutoCompleteOptions(defaultPathOptions);
-  }, [tree, path, pathname])
+    if (!treeNode.cached) {
+      dispatch(getNoteAsync(treeNode.path));
+      return;
+    }
+
+    setSHA(treeNode?.sha || '');
+    setTitle(getTitleFromFilename(treeNode.name));
+    setContent(treeNode?.content || '');
+  }, [tree, path, editMode])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -66,13 +64,13 @@ const Editor: React.FC = (): ReactElement => {
     setContentError(false);
 
     const autoSelectedDirPath = dirPathArray.join('/');
-    const dirPath = autoSelectedDirPath + (endDir === "" ? "" : (autoSelectedDirPath === "" ? endDir : '/' + endDir));
-    if (dirPath != "" && !dirPath.match(VALID_DIR_PATH_REGEX)) {
+    const dirPath = appendPath(autoSelectedDirPath, endDir);
+    if (dirPath !== "" && !dirPath.match(VALID_DIR_PATH_REGEX)) {
       setDirPathError(true);
       return;
     }
 
-    const filename = title + '.md';
+    const filename = getFilenameFromTitle(title);
     if (!filename.match(VALID_FILENAME_REGEX)) {
       setTitleError(true);
       return;
@@ -83,7 +81,7 @@ const Editor: React.FC = (): ReactElement => {
       return;
     }
 
-    const fullPath = dirPath !== "" ? (dirPath + '/' + filename) : filename;
+    const fullPath = appendPath(dirPath, filename);
     await dispatch(saveNoteAsync({ path: fullPath, content: content, sha: sha }));
     navigate("/?path=" + encodeURIComponent(dirPath));
   }
@@ -110,10 +108,10 @@ const Editor: React.FC = (): ReactElement => {
             setDirPathError(false);
             if (newInputValue.indexOf('/') > -1) {
               const trimmedPath = newInputValue.trim().replace(/^\/+|\/+$/g, '');
-              const newPath = [...dirPathArray, ...trimmedPath.split('/')];
+              const pathArray = [...dirPathArray, ...splitPath(trimmedPath)];
               if (trimmedPath) {
-                setDirPathArray(newPath);
-                setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, newPath.join("/")));
+                setDirPathArray(pathArray);
+                setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, pathArray.join("/")));
               }
               setEndDir('');
               return;
@@ -154,7 +152,6 @@ const Editor: React.FC = (): ReactElement => {
 
         <Button type="submit" variant="contained" endIcon={<KeyboardArrowRightIcon />} sx={{ float: 'right' }}> SAVE </Button>
       </form>
-
     </Container>
   )
 }
