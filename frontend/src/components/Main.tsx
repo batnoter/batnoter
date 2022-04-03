@@ -56,7 +56,7 @@ const Main: React.FC = (): ReactElement => {
             <Routes>
               <Route path="/" element={<Finder />} ></Route>
               <Route path="/new" element={<Editor key={'new'} />} ></Route>
-              <Route path="/edit/:path" element={<Editor key="edit" />} ></Route>
+              <Route path="/edit" element={<Editor key="edit" />} ></Route>
               <Route path="/settings" element={<Settings user={user} />} ></Route>
             </Routes>
           </Container>
