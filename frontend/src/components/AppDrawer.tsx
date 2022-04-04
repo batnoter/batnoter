@@ -5,12 +5,14 @@ import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import { TreeView } from '@mui/lab';
 import { Drawer, Toolbar } from '@mui/material';
+import { useModal } from 'mui-modal-provider';
 import React, { ReactElement, SyntheticEvent, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { deleteNoteAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
 import { getTitleFromFilename, isFilePath, splitPath } from '../util/util';
+import ConfirmDialog from './ConfirmDialog';
 import StyledTreeItem from './StyledTreeItem';
 
 interface Props {
@@ -22,6 +24,7 @@ export const DRAWER_WIDTH = 240;
 const AppDrawer: React.FC<Props> = (): ReactElement => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showModal } = useModal();
   const [searchParams] = useSearchParams();
   const getAllSubpath = (path: string): string[] => {
     const subpath = splitPath(path).map((s, i) => path.split('/').slice(0, i + 1).join('/'));
@@ -53,8 +56,14 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
 
   const handleDelete = (e: SyntheticEvent, filepath: string) => {
     e.stopPropagation();
-    const n = TreeUtil.searchNode(tree, filepath)
-    n && dispatch(deleteNoteAsync(n));
+    const n = TreeUtil.searchNode(tree, filepath);
+    if (!n) {
+      return;
+    }
+    showModal(ConfirmDialog, {
+      desc: 'Are you sure you want to delete this note?',
+      onConfirm: () => dispatch(deleteNoteAsync(n))
+    });
   }
 
   const renderTree = (t: TreeNode) => {
