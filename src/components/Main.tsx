@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import ModalProvider from 'mui-modal-provider';
 import React, { ReactElement, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
@@ -42,26 +43,28 @@ const Main: React.FC = (): ReactElement => {
 
   return (
     <ThemeProvider theme={createTheme()}>
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-        <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user} />
-        <AppDrawer user={user} />
-        <Box component="main" sx={{
-          backgroundColor: (theme) => theme.palette.mode === 'light'
-            ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
-        }}>
-          <Toolbar />
-          {user != null && !user?.default_repo?.name && <RepoSelectDialog open={true}></RepoSelectDialog>}
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Routes>
-              <Route path="/" element={<Finder />} ></Route>
-              <Route path="/new" element={<Editor key={'new'} />} ></Route>
-              <Route path="/edit" element={<Editor key="edit" />} ></Route>
-              <Route path="/settings" element={<Settings user={user} />} ></Route>
-            </Routes>
-          </Container>
+      <ModalProvider>
+        <Box sx={{ display: 'flex' }}>
+          <CssBaseline />
+          <AppBar userStatus={userStatus} setUserStatus={setUserStatus} handleLogout={handleLogout} user={user} />
+          <AppDrawer user={user} />
+          <Box component="main" sx={{
+            backgroundColor: (theme) => theme.palette.mode === 'light'
+              ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
+          }}>
+            <Toolbar />
+            {user != null && !user?.default_repo?.name && <RepoSelectDialog open={true}></RepoSelectDialog>}
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+              <Routes>
+                <Route path="/" element={<Finder />} ></Route>
+                <Route path="/new" element={<Editor key={'new'} />} ></Route>
+                <Route path="/edit" element={<Editor key="edit" />} ></Route>
+                <Route path="/settings" element={<Settings user={user} />} ></Route>
+              </Routes>
+            </Container>
+          </Box>
         </Box>
-      </Box>
+      </ModalProvider>
     </ThemeProvider>
   );
 }

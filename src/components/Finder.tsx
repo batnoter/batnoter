@@ -1,25 +1,31 @@
 import { Masonry } from '@mui/lab';
 import { Container } from '@mui/material';
+import { useModal } from 'mui-modal-provider';
 import React, { ReactElement, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { deleteNoteAsync, getNotesAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
 import { getDecodedPath } from '../util/util';
+import ConfirmDialog from './ConfirmDialog';
 import NoteCard from './NoteCard';
 
 const Finder = (): ReactElement => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showModal } = useModal();
   const tree = useAppSelector(selectNotesTree);
   const [searchParams] = useSearchParams();
-  const path = getDecodedPath(searchParams.get('path'))
+  const path = getDecodedPath(searchParams.get('path'));
 
   useEffect(() => {
-    dispatch(getNotesAsync(path))
-  }, [tree, path])
+    dispatch(getNotesAsync(path));
+  }, [tree, path]);
 
   const handleDelete = (note: TreeNode) => {
-    dispatch(deleteNoteAsync(note));
+    showModal(ConfirmDialog, {
+      desc: 'Are you sure you want to delete this note?',
+      onConfirm: () => dispatch(deleteNoteAsync(note))
+    });
   }
 
   const handleEdit = (note: TreeNode) => {
@@ -39,13 +45,11 @@ const Finder = (): ReactElement => {
     <Container>
       <Masonry columns={{ xs: 1, md: 3, xl: 4 }} spacing={2}>
         {notes.filter(n => !n.is_dir).map(note => (
-          <div key={note.path}>
-            <NoteCard note={note} handleEdit={handleEdit} handleDelete={handleDelete} />
-          </div>
+          <div key={note.path}> <NoteCard note={note} handleEdit={handleEdit} handleDelete={handleDelete} /> </div>
         ))}
       </Masonry>
     </Container>
-  )
+  );
 }
 
-export default Finder
+export default Finder;
