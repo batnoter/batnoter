@@ -11,7 +11,6 @@ import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { deleteNoteAsync, getNoteAsync, selectNotesTree, TreeNode, TreeUtil } from "../reducer/noteSlice";
 import { confirmDeleteNote, getDecodedPath, getTitleFromFilename, splitPath } from "../util/util";
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
-import './Viewer.scss';
 
 const Viewer: React.FC = (): ReactElement => {
   const dispatch = useAppDispatch();

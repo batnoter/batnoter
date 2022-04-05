@@ -1,7 +1,7 @@
 
 import SaveIcon from '@mui/icons-material/Save';
 import { LoadingButton } from '@mui/lab';
-import { Autocomplete, Breadcrumbs, Button, Container, Link, TextField } from '@mui/material';
+import { Autocomplete, Breadcrumbs, Button, Container, Link, styled, TextField, Theme } from '@mui/material';
 import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
 import MDEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -13,6 +13,32 @@ import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
 const VALID_DIR_PATH_REGEX = /^[^/.]([/a-zA-Z0-9-]|[^\S\r\n])+([^/])$/gm;
 const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
+
+const StyledMDEditor = styled(MDEditor)(
+  ({ theme }: { theme: Theme }) => `
+  margin: 16px 0;
+  height: 275px;
+  border-color: rgba(0, 0, 0, 0.23);
+  border-radius: ${theme.shape.borderRadius}px;
+  & > .rc-md-navigation {
+    min-height: 56px;
+    border-radius: ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0;
+
+    .button-wrap {
+      .button {
+        margin: 0 5px;
+      }
+      .rmel-iconfont {
+        font-size: ${theme.typography.fontSize + 8}px;
+      }
+    } 
+  }
+
+  &.error {
+    border-color: ${theme.palette.error.main};
+  }
+  `,
+);
 
 const Editor: React.FC = (): ReactElement => {
   const dispatch = useAppDispatch();
@@ -132,11 +158,11 @@ const Editor: React.FC = (): ReactElement => {
           variant="outlined" fullWidth required error={titleError}
         />
 
-        <MDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
+        <StyledMDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
           value={content}
-          renderHTML={text => <CustomReactMarkdown>{text}</CustomReactMarkdown>}
+          renderHTML={(text: string) => <CustomReactMarkdown>{text}</CustomReactMarkdown>}
           placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
-          onChange={({ text }) => { setContentError(false); setContent(text) }} />
+          onChange={({ text }: { text: string }) => { setContentError(false); setContent(text) }} />
 
         <LoadingButton loading={status === NoteStatus.LOADING} type="submit" variant="contained" startIcon={<SaveIcon />} sx={{ float: 'right' }}>SAVE</LoadingButton>
         <Button onClick={() => navigate('/')} variant="outlined" sx={{ float: 'right', mx: 1 }} >CANCEL</Button>
