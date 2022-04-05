@@ -1,17 +1,15 @@
 
-import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import SaveIcon from '@mui/icons-material/Save';
+import { LoadingButton } from '@mui/lab';
 import { Autocomplete, Breadcrumbs, Button, Container, Link, TextField } from '@mui/material';
 import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
-import ReactMarkdown from "react-markdown";
 import MDEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import remarkGfm from 'remark-gfm';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getNoteAsync, saveNoteAsync, selectNotesTree, TreeUtil } from '../reducer/noteSlice';
+import { getNoteAsync, NoteStatus, saveNoteAsync, selectNoteStatus, selectNotesTree, TreeUtil } from '../reducer/noteSlice';
 import { appendPath, getDecodedPath, getFilenameFromTitle, getTitleFromFilename, splitPath } from '../util/util';
-import './Editor.scss';
+import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
 const VALID_DIR_PATH_REGEX = /^[^/.]([/a-zA-Z0-9-]|[^\S\r\n])+([^/])$/gm;
 const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
@@ -25,6 +23,7 @@ const Editor: React.FC = (): ReactElement => {
   const editMode = pathname.startsWith('/edit');
   const path = getDecodedPath(searchParams.get('path'));
   const tree = useAppSelector(selectNotesTree);
+  const status = useAppSelector(selectNoteStatus);
 
   const [sha, setSHA] = useState('');
   const [title, setTitle] = useState('');
@@ -135,22 +134,12 @@ const Editor: React.FC = (): ReactElement => {
 
         <MDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
           value={content}
-          renderHTML={text => <ReactMarkdown components={{
-            code({ inline, className, children, ...props }) {
-              return (
-                <>
-                  <code className={className} {...props}>{children}</code>
-                  {!inline && <ContentCopyOutlinedIcon style={{ right: 5, position: "absolute", cursor: 'pointer' }}
-                    onClick={() => { navigator.clipboard.writeText(String(children)) }} />}
-                </>
-              )
-            }
-          }}
-            remarkPlugins={[remarkGfm]} >{text}</ReactMarkdown>}
+          renderHTML={text => <CustomReactMarkdown>{text}</CustomReactMarkdown>}
           placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
           onChange={({ text }) => { setContentError(false); setContent(text) }} />
 
-        <Button type="submit" variant="contained" endIcon={<KeyboardArrowRightIcon />} sx={{ float: 'right' }}> SAVE </Button>
+        <LoadingButton loading={status === NoteStatus.LOADING} type="submit" variant="contained" startIcon={<SaveIcon />} sx={{ float: 'right' }}>SAVE</LoadingButton>
+        <Button onClick={() => navigate('/')} variant="outlined" sx={{ float: 'right', mx: 1 }} >CANCEL</Button>
       </form>
     </Container>
   )
