@@ -27,7 +27,7 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
 
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-      <Toolbar>
+      <Toolbar variant="dense">
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: "flex" }}>
           GIT NOTER
         </Typography>
@@ -56,4 +56,4 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
   )
 }
 
-export default AppBar
+export default AppBar;

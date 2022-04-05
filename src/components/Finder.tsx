@@ -5,8 +5,7 @@ import React, { ReactElement, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { deleteNoteAsync, getNotesAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
-import { getDecodedPath } from '../util/util';
-import ConfirmDialog from './ConfirmDialog';
+import { confirmDeleteNote, getDecodedPath } from '../util/util';
 import NoteCard from './NoteCard';
 
 const Finder = (): ReactElement => {
@@ -22,14 +21,15 @@ const Finder = (): ReactElement => {
   }, [tree, path]);
 
   const handleDelete = (note: TreeNode) => {
-    showModal(ConfirmDialog, {
-      desc: 'Are you sure you want to delete this note?',
-      onConfirm: () => dispatch(deleteNoteAsync(note))
-    });
+    confirmDeleteNote(showModal, () => dispatch(deleteNoteAsync(note as TreeNode)));
+  }
+
+  const handleView = (note: TreeNode) => {
+    navigate(`/view?path=${encodeURIComponent(note.path)}`);
   }
 
   const handleEdit = (note: TreeNode) => {
-    navigate("/edit?path=" + encodeURIComponent(note.path));
+    navigate(`/edit?path=${encodeURIComponent(note.path)}`);
   }
 
   const getChildren = (path: string): TreeNode[] | undefined => {
@@ -45,7 +45,7 @@ const Finder = (): ReactElement => {
     <Container>
       <Masonry columns={{ xs: 1, md: 3, xl: 4 }} spacing={2}>
         {notes.filter(n => !n.is_dir).map(note => (
-          <div key={note.path}> <NoteCard note={note} handleEdit={handleEdit} handleDelete={handleDelete} /> </div>
+          <div key={note.path}> <NoteCard note={note} handleView={handleView} handleEdit={handleEdit} handleDelete={handleDelete} /> </div>
         ))}
       </Masonry>
     </Container>
