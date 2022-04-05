@@ -16,6 +16,7 @@ import Editor from './Editor';
 import Finder from './Finder';
 import RepoSelectDialog from './RepoSelectDialog';
 import Settings from './Settings';
+import Viewer from './Viewer';
 
 const Main: React.FC = (): ReactElement => {
   const dispatch = useAppDispatch();
@@ -52,13 +53,14 @@ const Main: React.FC = (): ReactElement => {
             backgroundColor: (theme) => theme.palette.mode === 'light'
               ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
           }}>
-            <Toolbar />
+            <Toolbar variant="dense" />
             {user != null && !user?.default_repo?.name && <RepoSelectDialog open={true}></RepoSelectDialog>}
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
               <Routes>
                 <Route path="/" element={<Finder />} ></Route>
                 <Route path="/new" element={<Editor key={'new'} />} ></Route>
                 <Route path="/edit" element={<Editor key="edit" />} ></Route>
+                <Route path="/view" element={<Viewer key={'view'} />} ></Route>
                 <Route path="/settings" element={<Settings user={user} />} ></Route>
               </Routes>
             </Container>
@@ -69,4 +71,4 @@ const Main: React.FC = (): ReactElement => {
   );
 }
 
-export default Main
+export default Main;

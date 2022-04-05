@@ -11,8 +11,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { deleteNoteAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
-import { getTitleFromFilename, isFilePath, splitPath } from '../util/util';
-import ConfirmDialog from './ConfirmDialog';
+import { confirmDeleteNote, getTitleFromFilename, isFilePath, splitPath } from '../util/util';
 import StyledTreeItem from './StyledTreeItem';
 
 interface Props {
@@ -22,9 +21,9 @@ interface Props {
 export const DRAWER_WIDTH = 240;
 
 const AppDrawer: React.FC<Props> = (): ReactElement => {
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { showModal } = useModal();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const getAllSubpath = (path: string): string[] => {
     const subpath = splitPath(path).map((s, i) => path.split('/').slice(0, i + 1).join('/'));
@@ -40,30 +39,28 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   }, [tree, path])
 
   const handleNodeSelect = (e: React.SyntheticEvent, path: string) => {
-    isFilePath(path) ? navigate("/view?path=" + encodeURIComponent(path))
-      : navigate("/?path=" + encodeURIComponent(path));
+    isFilePath(path) ? navigate(`/view?path=${encodeURIComponent(path)}`)
+      : navigate(`/?path=${encodeURIComponent(path)}`);
   }
 
   const handleCreate = (e: SyntheticEvent, dirPath: string) => {
     e.stopPropagation();
-    navigate(`/new?path=${dirPath}`);
+    navigate(`/new?path=${encodeURIComponent(dirPath)}`);
   }
 
   const handleEdit = (e: SyntheticEvent, filepath: string) => {
     e.stopPropagation();
-    navigate("/edit?path=" + encodeURIComponent(filepath));
+    navigate(`/edit?path=${encodeURIComponent(filepath)}`);
   }
 
   const handleDelete = (e: SyntheticEvent, filepath: string) => {
     e.stopPropagation();
-    const n = TreeUtil.searchNode(tree, filepath);
-    if (!n) {
+    const note = TreeUtil.searchNode(tree, filepath);
+    if (!note) {
       return;
     }
-    showModal(ConfirmDialog, {
-      desc: 'Are you sure you want to delete this note?',
-      onConfirm: () => dispatch(deleteNoteAsync(n))
-    });
+
+    confirmDeleteNote(showModal, () => dispatch(deleteNoteAsync(note as TreeNode)));
   }
 
   const renderTree = (t: TreeNode) => {
@@ -79,7 +76,7 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
 
   return (
     <Drawer variant="permanent" sx={{ width: DRAWER_WIDTH, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}>
-      <Toolbar />
+      <Toolbar variant="dense" />
       <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}
         expanded={expanded} selected={path} onNodeSelect={handleNodeSelect}
         onNodeToggle={(e, ids) => setExpanded(ids)} sx={{ flexGrow: 1, minWidth: "max-content", width: "100%" }}>
