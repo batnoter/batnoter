@@ -6,7 +6,7 @@ There are several ways to start backend service. Refer any one of the following 
 ### Run application locally with make & go
 #### Setup & start database
 Make sure docker is installed on the system since below make commands use docker to start the database container
-```
+```shell
 make network
 make postgres
 make createdb
@@ -46,12 +46,12 @@ Make sure that the `.gitnoter.yaml` file is configured correctly & database is u
 ### Build docker image & run the application with docker locally
 
 #### Build docker image locally
-```
+```shell
 docker build -t gitnoter-backend:latest .
 ```
 
 #### Start containers with required configuration
-```
+```shell
 # setup pre-requisite
 docker network create gn-network
 docker run --name postgres12 --network gn-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
