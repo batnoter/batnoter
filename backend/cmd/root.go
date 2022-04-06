@@ -54,6 +54,8 @@ func initConfig() {
 	// The enviper is a wrapper over viper that loads the config from file & overrides
 	// them with env variables if available. If the config file is missing it simply ignores it
 	e := enviper.New(viper.New())
+	e.SetDefault("httpserver.host", "localhost")
+	e.SetDefault("httpserver.port", "8080")
 
 	var cfgFile string
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is .gitnoter.yaml)")
