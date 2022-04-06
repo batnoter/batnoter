@@ -8,6 +8,7 @@ postgres:
 
 createdb:
 	docker exec -it postgres12 createdb --username=root --owner=root gn_db
+	docker exec -it postgres12 sh -c "psql -U root -d gn_db -c \"CREATE SCHEMA IF NOT EXISTS gitnoter;\" "
 
 dropdb:
 	docker exec -it postgres12 dropdb gn_db
@@ -17,7 +18,7 @@ migrateup:
 	go run main.go migrateup
 
 migratedown:
-	migrate -path migrations -database "postgresql://root:secret@localhost:5432/gn_db?sslmode=disable" -verbose down
+	migrate -path migrations -database "postgresql://root:secret@localhost:5432/gn_db?search_path=gitnoter&sslmode=disable" -verbose down
 
 addmigration:
 	migrate create -ext sql -dir migrations ${file}
