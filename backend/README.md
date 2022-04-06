@@ -56,6 +56,7 @@ docker build -t gitnoter-backend:latest .
 docker network create gn-network
 docker run --name postgres12 --network gn-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
 docker exec -it postgres12 createdb --username=root --owner=root gn_db
+docker exec -it postgres12 sh -c "psql -U root -d gn_db -c \"CREATE SCHEMA IF NOT EXISTS gitnoter;\" "
 
 # inspect the ip-address of postgres container
 docker inspect <postgres-container-id>
