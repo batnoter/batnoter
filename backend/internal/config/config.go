@@ -13,6 +13,7 @@ type Database struct {
 	Username   string
 	Password   string
 	DriverName string
+	SSLMode    string
 	Debug      bool
 }
 

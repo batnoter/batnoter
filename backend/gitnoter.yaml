@@ -7,6 +7,7 @@ database:
   dbName: gn_db
   username: root
   password: secret
+  sslMode: disable
   debug: false
 
 httpServer:
