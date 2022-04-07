@@ -11,7 +11,7 @@ import { getNoteAsync, NoteStatus, saveNoteAsync, selectNoteStatus, selectNotesT
 import { appendPath, getDecodedPath, getFilenameFromTitle, getTitleFromFilename, splitPath } from '../util/util';
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
-const VALID_DIR_PATH_REGEX = /^[^/.]([/a-zA-Z0-9-]|[^\S\r\n])+([^/])$/gm;
+const VALID_DIR_PATH_REGEX = /^((?!\/)([a-zA-Z0-9-]([/]|[^\S\r\n])?)+)(?<!\/)$/gm;
 const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
 
 const StyledMDEditor = styled(MDEditor)(
