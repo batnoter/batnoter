@@ -5,7 +5,7 @@ This is the backend service of gitnoter application.
 There are several ways to start backend service. Refer any one of the following method
 ### Run application locally with make & go
 #### Setup & start database
-Make sure docker is installed on the system since below make commands use docker to start the database container
+Make sure docker is installed on the system. Below commands use docker to start the database container
 ```shell
 make network
 make postgres
@@ -44,7 +44,6 @@ Make sure that the `.gitnoter.yaml` file is configured correctly & database is u
 ```
 
 ### Build docker image & run the application with docker locally
-
 #### Build docker image locally
 ```shell
 docker build -t gitnoter-backend:latest .
@@ -82,8 +81,6 @@ docker run --network gn-network -it \
 -e DATABASE_PASSWORD='secret' \
 -e DATABASE_SSLMODE='disable' \
 -e DATABASE_DEBUG='true' \
--e HTTPSERVER_HOST='0.0.0.0' \
--e HTTPSERVER_PORT='8080' \
 -e HTTPSERVER_DEBUG='true' \
 -e OAUTH2_GITHUB_CLIENTID='<github_client_id>' \
 -e OAUTH2_GITHUB_CLIENTSECRET='<github_client_secret>' \
@@ -92,4 +89,4 @@ docker run --network gn-network -it \
 gitnoter-backend
 ```
 
-This will start the server on the specified port
+This will start the server on the specified port.
