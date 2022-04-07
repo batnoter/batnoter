@@ -68,6 +68,7 @@ docker run --network gn-network -it \
 -e DATABASE_DBNAME='gn_db' \
 -e DATABASE_USERNAME='root' \
 -e DATABASE_PASSWORD='secret' \
+-e DATABASE_SSLMODE='disable' \
 -e DATABASE_DEBUG='true' \
 gitnoter-backend /app/gitnoter migrateup
 
@@ -79,6 +80,7 @@ docker run --network gn-network -it \
 -e DATABASE_DBNAME='gn_db' \
 -e DATABASE_USERNAME='root' \
 -e DATABASE_PASSWORD='secret' \
+-e DATABASE_SSLMODE='disable' \
 -e DATABASE_DEBUG='true' \
 -e HTTPSERVER_HOST='0.0.0.0' \
 -e HTTPSERVER_PORT='8080' \

@@ -12,8 +12,8 @@ import (
 // Connect opens a new connection with database specified by configuration.
 // It returns gorm db instance and any connection error encountered.
 func Connect(config config.Database) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s search_path=%s sslmode=disable TimeZone=UTC",
-		config.Host, config.Username, config.Password, config.DBName, config.Port, "gitnoter")
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s search_path=%s sslmode=%s TimeZone=UTC",
+		config.Host, config.Username, config.Password, config.DBName, config.Port, "gitnoter", config.SSLMode)
 
 	gormConfig := &gorm.Config{}
 	if config.Debug {

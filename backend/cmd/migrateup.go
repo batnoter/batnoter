@@ -20,8 +20,8 @@ var migrateupCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logrus.Info("starting database migration")
 
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s search_path=%s sslmode=disable TimeZone=UTC",
-			conf.Database.Host, conf.Database.Username, conf.Database.Password, conf.Database.DBName, conf.Database.Port, "gitnoter")
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s search_path=%s sslmode=%s TimeZone=UTC",
+			conf.Database.Host, conf.Database.Username, conf.Database.Password, conf.Database.DBName, conf.Database.Port, "gitnoter", conf.Database.SSLMode)
 
 		db, err := sql.Open("postgres", dsn)
 		if err != nil {
