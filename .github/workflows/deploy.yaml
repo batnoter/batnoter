@@ -1,0 +1,63 @@
+name: Deployment
+
+on:
+  workflow_run:
+    workflows: [Build]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  deployment:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: 
+      name: Production
+      url: 'https://gitnoter.com'
+    steps:
+      - name: Setup kubectl with kubeconfig
+        uses: azure/k8s-set-context@v2
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: Create namespace if not exist
+        run: |
+          kubectl create namespace gn --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Set regcred secret
+        uses: azure/k8s-create-secret@v2
+        with:
+          namespace: 'gn'
+          secret-type: 'kubernetes.io/dockerconfigjson'
+          secret-name: 'regcred'
+          data: ${{ secrets.REGCRED_SECRET }}
+          
+      - name: Set postgres-secret
+        uses: azure/k8s-create-secret@v2
+        with:
+          namespace: 'gn'
+          secret-type: 'generic'
+          secret-name: postgres-secret
+          data:  ${{ secrets.POSTGRES_SECRET }}
+          
+      - name: Set auth-secret
+        uses: azure/k8s-create-secret@v2
+        with:
+          namespace: 'gn'
+          secret-type: 'generic'
+          secret-name: auth-secret
+          data:  ${{ secrets.AUTH_SECRET }}
+
+      - name: Setup helm
+        uses: azure/setup-helm@v1
+
+      - name: Deploy to production
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo add gitnoter https://vivekweb2013.github.io/gitnoter-charts
+          helm repo update
+          
+          helm upgrade ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx --create-namespace --install --wait --version v4.0.19 --set controller.publishService.enabled=true
+          helm upgrade cert-manager jetstack/cert-manager -n cert-manager --create-namespace --install --wait --version v1.8.0 --set installCRDs=true
+          helm upgrade gitnoter gitnoter/gitnoter -n gn --create-namespace --install --wait
