@@ -255,11 +255,16 @@ export class TreeUtil {
       return;
     }
     for (let i = 0; i < root.children.length; i++) {
-      if (root.children[i].path == path) {
+      const child = root.children[i];
+      if (child.path == path) {
         root.children.splice(i, 1);
         break;
       }
-      TreeUtil.deleteNode(root.children[i], path);
+      TreeUtil.deleteNode(child, path);
+      if (child.is_dir && child.children?.length === 0) {
+        // remove empty parent directories on delete
+        root.children.splice(i, 1);
+      }
     }
   }
 
