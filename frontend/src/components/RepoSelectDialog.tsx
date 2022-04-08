@@ -8,6 +8,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { SourceBranch } from 'mdi-material-ui';
 import React, { ReactElement } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getUserReposAsync, PreferenceStatus, saveDefaultRepoAsync, selectPreferenceStatus, selectUserRepos } from '../reducer/preferenceSlice';
@@ -48,13 +49,13 @@ const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): Reac
 
   return (
     <Dialog disableEscapeKeyDown open={open} onClose={handleClose} fullWidth>
-      <DialogTitle>Select Default Repository</DialogTitle>
+      <DialogTitle>Select Notes Repository</DialogTitle>
       <DialogContent>
         <Box component="form" sx={{ display: 'flex', flexWrap: 'wrap' }}>
           <FormControl fullWidth sx={{ m: 1, minWidth: 120 }}>
-            <InputLabel id="default-repo-select-label">Default Repository</InputLabel>
-            <Select autoWidth labelId="default-repo-select-label" value={repoName || defaultRepo} onChange={handleChange} disabled={prefStatus === PreferenceStatus.LOADING} label="Default Repository">
-              {repos.map(r => <MenuItem key={r.name} value={r.name}>{r.name} (Branch: {r.default_branch || 'main'})</MenuItem>)}
+            <InputLabel id="notes-repo-select-label">Notes Repository</InputLabel>
+            <Select autoWidth labelId="notes-repo-select-label" value={repoName || defaultRepo} onChange={handleChange} disabled={prefStatus === PreferenceStatus.LOADING} label="Notes Repository">
+              {repos.map(r => <MenuItem key={r.name} value={r.name}>{r.name} (<SourceBranch sx={{ verticalAlign: 'middle' }} fontSize='inherit' /> {r.default_branch || 'main'})</MenuItem>)}
             </Select>
           </FormControl>
         </Box>
