@@ -1,4 +1,5 @@
 import { Avatar, Button, Container, Grid, Typography } from '@mui/material'
+import { SourceBranch } from 'mdi-material-ui'
 import React, { ReactElement } from 'react'
 import { User } from '../reducer/userSlice'
 import RepoSelectDialog from './RepoSelectDialog'
@@ -20,8 +21,8 @@ const Settings: React.FC<Props> = ({ user }): ReactElement => {
         <Grid container direction="column" marginY={2}>
           <Typography m={0} variant="h5" gutterBottom component="div"> {user?.name} </Typography>
           <Typography color="textSecondary" variant="body1" gutterBottom component="div"> {user?.location} </Typography>
-          {user?.default_repo?.default_branch && <Typography color="textSecondary" m={0} variant="h6" gutterBottom component="div"> Default Repository: {user?.default_repo?.name} (Branch: {user?.default_repo?.default_branch})</Typography>}
-          <Button onClick={() => setOpenRepoSelectDialog(true)}> Change Default Repository </Button>
+          {user?.default_repo?.default_branch && <Typography color="textSecondary" m={0} variant="h6" gutterBottom component="div">Notes Repository: {user?.default_repo?.name} (<SourceBranch sx={{ verticalAlign: 'middle' }} fontSize='inherit' /> {user?.default_repo?.default_branch})</Typography>}
+          <Button onClick={() => setOpenRepoSelectDialog(true)}> Change Notes Repository </Button>
           <RepoSelectDialog open={openRepoSelectDialog} setOpen={setOpenRepoSelectDialog} defaultRepo={user?.default_repo?.name} />
         </Grid>
       </Grid>
