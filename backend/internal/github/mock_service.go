@@ -36,6 +36,20 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
+// CreateRepo mocks base method.
+func (m *MockService) CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRepo", ctx, ghToken, repoName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateRepo indicates an expected call of CreateRepo.
+func (mr *MockServiceMockRecorder) CreateRepo(ctx, ghToken, repoName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRepo", reflect.TypeOf((*MockService)(nil).CreateRepo), ctx, ghToken, repoName)
+}
+
 // DeleteFile mocks base method.
 func (m *MockService) DeleteFile(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) error {
 	m.ctrl.T.Helper()

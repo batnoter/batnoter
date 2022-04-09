@@ -1,6 +1,7 @@
 package httpservice
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -103,11 +104,50 @@ func (p *PreferenceHandler) SaveDefaultRepo(c *gin.Context) {
 	dbDefaultRepo.DefaultBranch = repoPayload.DefaultBranch
 
 	if err := p.preferenceService.Save(dbDefaultRepo); err != nil {
+		logrus.Errorf("saving user's default repo failed")
 		abortRequestWithError(c, err)
 		return
 	}
 	c.Status(http.StatusOK)
 	logrus.WithField("user-id", userID).Info("request to link default repo successful")
+}
+
+// AutoSetupRepo creates a new notes repo in user's github account and stores it as user's default repo preference.
+func (p *PreferenceHandler) AutoSetupRepo(c *gin.Context) {
+	repoName := c.Query("repoName")
+	if err := validation.Validate(repoName, validation.Required); err != nil {
+		abortRequestWithError(c, NewAppError(ErrorCodeValidationFailed, fmt.Sprintf("repoName: %s", err.Error())))
+		return
+	}
+	user, err := p.getUser(c)
+	if err != nil {
+		logrus.Errorf("fetching user from context failed")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	logrus.WithField("user-id", user.ID).Infof("request to auto setup default repo")
+	err = p.githubService.CreateRepo(c, parseOAuth2Token(user.GithubToken), repoName)
+	if err != nil {
+		logrus.Errorf("creating a new notes repo in github failed")
+		abortRequestWithError(c, err)
+		return
+	}
+
+	defaultRepo := preference.DefaultRepo{
+		UserID:        user.ID,
+		Name:          repoName,
+		Visibility:    "private",
+		DefaultBranch: "main",
+	}
+
+	if err := p.preferenceService.Save(defaultRepo); err != nil {
+		logrus.Errorf("saving user's default repo failed")
+		abortRequestWithError(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+	logrus.WithField("user-id", user.ID).Info("request to auto setup default repo successful")
 }
 
 func (p *PreferenceHandler) getUser(c *gin.Context) (user.User, error) {
