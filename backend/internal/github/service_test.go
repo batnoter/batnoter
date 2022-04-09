@@ -243,6 +243,63 @@ func TestGetRepos(t *testing.T) {
 	})
 }
 
+func TestCreateRepo(t *testing.T) {
+	t.Run("should create a new repo when request is valid", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockClientBuilder := NewMockClientBuilder(ctrl)
+		service := NewService(mockClientBuilder)
+
+		gin.SetMode(gin.TestMode)
+		router := gin.Default()
+		server := httptest.NewServer(router)
+		defer server.Close()
+
+		// to get the details of github response structure
+		// refer - https://docs.github.com/en/rest/reference/repos#create-a-repository-for-the-authenticated-user
+		respJSON := `{
+			"id": 2250277,
+			"node_id": "ZZEwOlJlcG9zaZRvUikXPjk2MjZ5",
+			"name": "notes",
+			"full_name": "johndoe/notes",
+			"owner": {
+				"login": "johndoe",
+				"id": 1,
+				"type": "User"
+			},
+			"private": true,
+			"html_url": "https://github.com/johndoe/notes"
+		}`
+		router.POST("/user/repos", func(c *gin.Context) {
+			c.Data(200, "application/json; charset=utf-8", []byte(respJSON))
+		})
+		githubClient := github.NewClient(nil)
+		url, _ := url.Parse(server.URL + "/")
+		githubClient.BaseURL = url
+		mockClientBuilder.EXPECT().Build(gomock.Any(), gomock.Any()).Return(githubClient)
+
+		err := service.CreateRepo(context.Background(), oauth2.Token{}, "notes")
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return error when repo creation fails", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockClientBuilder := NewMockClientBuilder(ctrl)
+		service := NewService(mockClientBuilder)
+		server := httptest.NewServer(nil)
+		defer server.Close()
+
+		githubClient := github.NewClient(nil)
+		url, _ := url.Parse(server.URL + "/")
+		githubClient.BaseURL = url
+		mockClientBuilder.EXPECT().Build(gomock.Any(), gomock.Any()).Return(githubClient)
+
+		err := service.CreateRepo(context.Background(), oauth2.Token{}, "notes")
+		assert.Error(t, err)
+	})
+}
+
 func TestSearchFiles(t *testing.T) {
 	t.Run("should get search result(files) from git when search request is valid", func(t *testing.T) {
 		ctrl := gomock.NewController(t)

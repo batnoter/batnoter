@@ -29,6 +29,7 @@ func Run(applicationconfig *applicationconfig.ApplicationConfig) error {
 	v1.GET("/user/me", authMiddleware.AuthorizeToken(), userHandler.Profile)
 	v1.GET("/user/preference/repo", authMiddleware.AuthorizeToken(), preferenceHandler.GetRepos)
 	v1.POST("/user/preference/repo", authMiddleware.AuthorizeToken(), preferenceHandler.SaveDefaultRepo)
+	v1.POST("/user/preference/auto/repo", authMiddleware.AuthorizeToken(), preferenceHandler.AutoSetupRepo)
 
 	v1.GET("/search/notes", authMiddleware.AuthorizeToken(), noteHandler.SearchNotes)  // search notes (provide filters using query-params)
 	v1.GET("/tree/notes", authMiddleware.AuthorizeToken(), noteHandler.GetNotesTree)   // get complete notes repo tree
