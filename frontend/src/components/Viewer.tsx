@@ -3,29 +3,45 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import FolderIcon from '@mui/icons-material/Folder';
 import NotesIcon from '@mui/icons-material/Notes';
-import { Box, Breadcrumbs, Button, Container, Divider, Grid, Link } from "@mui/material";
+import { Alert, Box, Breadcrumbs, Button, Container, Divider, Grid, Link } from "@mui/material";
+import { unwrapResult } from '@reduxjs/toolkit';
 import { useModal } from 'mui-modal-provider';
 import React, { ReactElement, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { deleteNoteAsync, getNoteAsync, selectNotesTree, TreeNode, TreeUtil } from "../reducer/noteSlice";
-import { confirmDeleteNote, getDecodedPath, getTitleFromFilename, splitPath } from "../util/util";
+import { APIStatus, APIStatusType } from '../reducer/common';
+import { deleteNoteAsync, getNoteAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode, TreeUtil } from "../reducer/noteSlice";
+import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from "../util/util";
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
+
+const isLoading = (apiStatus: APIStatus): boolean => {
+  const { getNoteAsync, deleteNoteAsync } = apiStatus;
+  return getNoteAsync === APIStatusType.LOADING || deleteNoteAsync === APIStatusType.LOADING;
+}
+
+const isFailed = (apiStatus: APIStatus): boolean => {
+  const { getNoteAsync, deleteNoteAsync } = apiStatus;
+  return getNoteAsync === APIStatusType.FAIL || deleteNoteAsync === APIStatusType.FAIL;
+}
 
 const Viewer: React.FC = (): ReactElement => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { showModal } = useModal();
+
   const [note, setNote] = useState<TreeNode>()
   const [searchParams] = useSearchParams();
   const path = getDecodedPath(searchParams.get('path'));
   const tree = useAppSelector(selectNotesTree);
+  const apiStatus = useAppSelector(selectNoteStatus);
+  const [errorMessage, setErrorMessage] = React.useState("");
   const dirPathArray = splitPath(path);
   const title = getTitleFromFilename(dirPathArray.pop() || '');
 
   const handleDelete = () => {
     confirmDeleteNote(showModal, () => {
-      dispatch(deleteNoteAsync(note as TreeNode));
+      dispatch(deleteNoteAsync(note as TreeNode)).then(unwrapResult)
+        .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
       navigate(`/?path=${encodeURIComponent(dirPathArray.join('/'))}`);
     });
   }
@@ -36,11 +52,16 @@ const Viewer: React.FC = (): ReactElement => {
       return;
     }
     if (!treeNode.cached) {
-      dispatch(getNoteAsync(treeNode.path));
+      dispatch(getNoteAsync(treeNode.path)).then(unwrapResult)
+        .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
       return;
     }
     setNote(treeNode);
   }, [tree, path]);
+
+  useEffect(() => {
+    dispatch(resetStatus());
+  }, [path]);
 
   return (
     <Container maxWidth="lg">
@@ -54,11 +75,12 @@ const Viewer: React.FC = (): ReactElement => {
         </Box>
         <Box>
           <Button onClick={() => navigate('/')} variant="outlined" startIcon={<ArrowBackIcon />}>BACK</Button>
-          <Button onClick={() => navigate(`/edit?path=${encodeURIComponent(note?.path || '')}`)} variant="contained" sx={{ mx: 2 }} startIcon={<EditIcon />}>EDIT</Button>
-          <Button onClick={() => handleDelete()} variant="contained" startIcon={<DeleteIcon />} color="error">DELETE</Button>
+          <Button onClick={() => navigate(`/edit?path=${encodeURIComponent(note?.path || '')}`)} disabled={isLoading(apiStatus)} variant="contained" sx={{ mx: 2 }} startIcon={<EditIcon />}>EDIT</Button>
+          <Button onClick={() => handleDelete()} disabled={isLoading(apiStatus)} variant="contained" startIcon={<DeleteIcon />} color="error">DELETE</Button>
         </Box>
       </Grid>
       <Divider sx={{ my: 3 }} />
+      {isFailed(apiStatus) && errorMessage != null && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage}</Alert>}
       <Box className='viewer-markdown' sx={{ background: 'white', p: 2 }}>
         <CustomReactMarkdown className='custom-html-style'>{note?.content || ''}</CustomReactMarkdown>
       </Box>

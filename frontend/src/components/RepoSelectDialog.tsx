@@ -11,7 +11,8 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { SourceBranch } from 'mdi-material-ui';
 import React, { ReactElement } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getUserReposAsync, PreferenceStatus, saveDefaultRepoAsync, selectPreferenceStatus, selectUserRepos } from '../reducer/preferenceSlice';
+import { APIStatus, APIStatusType } from '../reducer/common';
+import { getUserReposAsync, saveDefaultRepoAsync, selectPreferenceStatus, selectUserRepos } from '../reducer/preferenceSlice';
 import { getUserProfileAsync } from '../reducer/userSlice';
 
 interface Props {
@@ -20,13 +21,18 @@ interface Props {
   setOpen?: (isOpen: boolean) => void
 }
 
+const isLoading = (apiStatus: APIStatus): boolean => {
+  const { getUserReposAsync, saveDefaultRepoAsync } = apiStatus;
+  return getUserReposAsync === APIStatusType.LOADING || saveDefaultRepoAsync === APIStatusType.LOADING;
+}
+
 const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): ReactElement => {
   const dispatch = useAppDispatch();
   React.useEffect(() => {
     dispatch(getUserReposAsync())
   }, [])
   const repos = useAppSelector(selectUserRepos);
-  const prefStatus = useAppSelector(selectPreferenceStatus);
+  const apiStatus = useAppSelector(selectPreferenceStatus);
 
   const [repoName, setDefaultRepoName] = React.useState<string>();
 
@@ -54,7 +60,7 @@ const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): Reac
         <Box component="form" sx={{ display: 'flex', flexWrap: 'wrap' }}>
           <FormControl fullWidth sx={{ m: 1, minWidth: 120 }}>
             <InputLabel id="notes-repo-select-label">Notes Repository</InputLabel>
-            <Select autoWidth labelId="notes-repo-select-label" value={repoName || defaultRepo} onChange={handleChange} disabled={prefStatus === PreferenceStatus.LOADING} label="Notes Repository">
+            <Select autoWidth labelId="notes-repo-select-label" value={repoName || defaultRepo} onChange={handleChange} disabled={isLoading(apiStatus)} label="Notes Repository">
               {repos.map(r => <MenuItem key={r.name} value={r.name}>{r.name} (<SourceBranch sx={{ verticalAlign: 'middle' }} fontSize='inherit' /> {r.default_branch || 'main'})</MenuItem>)}
             </Select>
           </FormControl>
@@ -62,7 +68,7 @@ const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): Reac
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button disabled={!repoName || prefStatus === PreferenceStatus.LOADING} onClick={() => handleSave()}>Save</Button>
+        <Button disabled={!repoName || isLoading(apiStatus)} onClick={() => handleSave()}>Save</Button>
       </DialogActions>
     </Dialog>
   );

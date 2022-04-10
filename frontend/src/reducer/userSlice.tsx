@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getUserProfile } from "../api/api";
 import { RootState } from "../app/store";
+import { APIStatusType } from "./common";
 
 export interface User {
   email: string
@@ -14,16 +15,14 @@ export interface User {
   }
 }
 
-export enum UserStatus { LOADING, IDLE, FAIL }
-
 interface UserState {
   value: User | null
-  status: UserStatus
+  status: APIStatusType
 }
 
 const initialState: UserState = {
   value: null,
-  status: UserStatus.IDLE
+  status: APIStatusType.IDLE
 }
 
 export const getUserProfileAsync = createAsyncThunk(
@@ -40,7 +39,7 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     userLoading: (state) => {
-      state.status = UserStatus.LOADING;
+      state.status = APIStatusType.LOADING;
     },
     userLogout: (state) => {
       state.value = null;
@@ -50,14 +49,14 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getUserProfileAsync.pending, (state) => {
-        state.status = UserStatus.LOADING;
+        state.status = APIStatusType.LOADING;
       })
       .addCase(getUserProfileAsync.fulfilled, (state, action) => {
-        state.status = UserStatus.IDLE;
+        state.status = APIStatusType.IDLE;
         state.value = action.payload as User;
       })
       .addCase(getUserProfileAsync.rejected, (state) => {
-        state.status = UserStatus.FAIL;
+        state.status = APIStatusType.FAIL;
         state.value = null;
         localStorage.removeItem("token")
       });
@@ -66,5 +65,5 @@ export const userSlice = createSlice({
 
 export const { userLoading, userLogout } = userSlice.actions;
 export const selectUser = (state: RootState): User | null => state.user.value;
-export const selectUserStatus = (state: RootState): UserStatus => state.user.status;
+export const selectUserStatus = (state: RootState): APIStatusType => state.user.status;
 export default userSlice.reducer;

@@ -8,13 +8,14 @@ import ModalProvider from 'mui-modal-provider';
 import React, { ReactElement, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { APIStatusType } from '../reducer/common';
 import { getNotesAsync, getNotesTreeAsync } from '../reducer/noteSlice';
-import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout, UserStatus } from '../reducer/userSlice';
+import { getUserProfileAsync, selectUser, selectUserStatus, userLoading, userLogout } from '../reducer/userSlice';
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
 import Editor from './Editor';
 import Finder from './Finder';
-import RepoSelectDialog from './RepoSelectDialog';
+import RepoSetupDialog from './RepoSetupDialog';
 import Settings from './Settings';
 import Viewer from './Viewer';
 
@@ -35,7 +36,7 @@ const Main: React.FC = (): ReactElement => {
 
   useEffect(() => {
     (async () => {
-      if (userStatus == UserStatus.IDLE && user != null) {
+      if (userStatus == APIStatusType.IDLE && user != null) {
         await dispatch(getNotesTreeAsync())
         dispatch(getNotesAsync(""))
       }
@@ -54,7 +55,7 @@ const Main: React.FC = (): ReactElement => {
               ? theme.palette.grey[100] : theme.palette.grey[900], flexGrow: 1, height: '100vh', overflow: 'auto',
           }}>
             <Toolbar variant="dense" />
-            {user != null && !user?.default_repo?.name && <RepoSelectDialog open={true}></RepoSelectDialog>}
+            {user != null && !user?.default_repo?.name && <RepoSetupDialog open={true}></RepoSetupDialog>}
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
               <Routes>
                 <Route path="/" element={<Finder />} ></Route>

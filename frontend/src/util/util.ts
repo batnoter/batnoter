@@ -1,9 +1,12 @@
+import { SerializedError } from "@reduxjs/toolkit";
 import { ShowFn } from "mui-modal-provider/dist/types";
 import ConfirmDialog from "../components/ConfirmDialog";
 
 
 const REPLACE_EXT_REGEX = /(\.md)$/i;
 const EXT = '.md';
+const BACKEND_ERROR_CODES = ['internal_server_error', 'validation_failed'];
+const UNKNOWN_ERR_MSG = "Something went wrong. Please try again!"
 
 export function getTitleFromFilename(filename: string): string {
   return filename.replace(REPLACE_EXT_REGEX, '');
@@ -52,4 +55,12 @@ export function confirmDeleteNote(showModal: ShowFn, onConfirm: () => void) {
     desc: 'Are you sure you want to delete this note?',
     onConfirm: onConfirm
   });
+}
+
+export function getSanitizedErrorMessage(error: SerializedError): string {
+  // Validate error. Since we don't want to show programming errors to users.
+  if (error.code != null && error.message != null && BACKEND_ERROR_CODES.includes(error.code)) {
+    return error.message;
+  }
+  return UNKNOWN_ERR_MSG;
 }
