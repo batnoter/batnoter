@@ -3,7 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import FolderIcon from '@mui/icons-material/Folder';
 import NotesIcon from '@mui/icons-material/Notes';
-import { Alert, Box, Breadcrumbs, Button, Container, Divider, Grid, Link } from "@mui/material";
+import { Alert, Box, Breadcrumbs, Button, CircularProgress, Container, Divider, Grid, Link } from "@mui/material";
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useModal } from 'mui-modal-provider';
 import React, { ReactElement, useEffect, useState } from "react";
@@ -17,6 +17,11 @@ import CustomReactMarkdown from './lib/CustomReactMarkdown';
 const isLoading = (apiStatus: APIStatus): boolean => {
   const { getNoteAsync, deleteNoteAsync } = apiStatus;
   return getNoteAsync === APIStatusType.LOADING || deleteNoteAsync === APIStatusType.LOADING;
+}
+
+const isGetNoteLoading = (apiStatus: APIStatus): boolean => {
+  const { getNoteAsync } = apiStatus;
+  return getNoteAsync === APIStatusType.LOADING;
 }
 
 const isFailed = (apiStatus: APIStatus): boolean => {
@@ -47,6 +52,11 @@ const Viewer: React.FC = (): ReactElement => {
   }
 
   useEffect(() => {
+    // This should be the first useEffect hook. Declare other useEffect hooks below this one.
+    dispatch(resetStatus());
+  }, [path])
+
+  useEffect(() => {
     const treeNode = TreeUtil.searchNode(tree, path);
     if (treeNode == null || treeNode.is_dir) {
       return;
@@ -57,33 +67,32 @@ const Viewer: React.FC = (): ReactElement => {
       return;
     }
     setNote(treeNode);
-  }, [tree, path]);
-
-  useEffect(() => {
-    dispatch(resetStatus());
-  }, [path]);
+  }, [tree, path])
 
   return (
-    <Container maxWidth="lg">
-      <Grid container direction="row" justifyContent="space-between" alignItems="center">
-        <Box>
-          <Breadcrumbs itemsAfterCollapse={2} sx={{ fontSize: '1.2rem' }}>
-            <Link key="root" underline="hover" color="inherit"><FolderIcon fontSize="medium" sx={{ mr: 0.5, verticalAlign: 'middle', }} />root</Link>
-            {dirPathArray.map((option) => (<Link key={option} underline="hover" color="inherit"> {option} </Link>))}
-          </Breadcrumbs>
-          <NotesIcon color="inherit" fontSize="medium" sx={{ mr: 0.5, verticalAlign: 'middle', }} />{title}
+    <Container maxWidth="lg">{isGetNoteLoading(apiStatus) ? <CircularProgress sx={{ position: "relative", top: "50%", left: "50%" }} /> :
+      <Box>
+        <Grid container direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Breadcrumbs itemsAfterCollapse={2} sx={{ fontSize: '1.2rem' }}>
+              <Link key="root" underline="hover" color="inherit"><FolderIcon fontSize="medium" sx={{ mr: 0.5, verticalAlign: 'middle', }} />root</Link>
+              {dirPathArray.map((option) => (<Link key={option} underline="hover" color="inherit"> {option} </Link>))}
+            </Breadcrumbs>
+            <NotesIcon color="inherit" fontSize="medium" sx={{ mr: 0.5, verticalAlign: 'middle', }} />{title}
+          </Box>
+          <Box>
+            <Button onClick={() => navigate('/')} variant="outlined" startIcon={<ArrowBackIcon />}>BACK</Button>
+            <Button onClick={() => navigate(`/edit?path=${encodeURIComponent(note?.path || '')}`)} disabled={isLoading(apiStatus)} variant="contained" sx={{ mx: 2 }} startIcon={<EditIcon />}>EDIT</Button>
+            <Button onClick={() => handleDelete()} disabled={isLoading(apiStatus)} variant="contained" startIcon={<DeleteIcon />} color="error">DELETE</Button>
+          </Box>
+        </Grid>
+        <Divider sx={{ my: 3 }} />
+        {isFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage}</Alert>}
+        <Box className='viewer-markdown' sx={{ background: 'white', p: 2 }}>
+          <CustomReactMarkdown className='custom-html-style'>{note?.content || ''}</CustomReactMarkdown>
         </Box>
-        <Box>
-          <Button onClick={() => navigate('/')} variant="outlined" startIcon={<ArrowBackIcon />}>BACK</Button>
-          <Button onClick={() => navigate(`/edit?path=${encodeURIComponent(note?.path || '')}`)} disabled={isLoading(apiStatus)} variant="contained" sx={{ mx: 2 }} startIcon={<EditIcon />}>EDIT</Button>
-          <Button onClick={() => handleDelete()} disabled={isLoading(apiStatus)} variant="contained" startIcon={<DeleteIcon />} color="error">DELETE</Button>
-        </Box>
-      </Grid>
-      <Divider sx={{ my: 3 }} />
-      {isFailed(apiStatus) && errorMessage != null && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage}</Alert>}
-      <Box className='viewer-markdown' sx={{ background: 'white', p: 2 }}>
-        <CustomReactMarkdown className='custom-html-style'>{note?.content || ''}</CustomReactMarkdown>
       </Box>
+    }
     </Container>
   );
 }
