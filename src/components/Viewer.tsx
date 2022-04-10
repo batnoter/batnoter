@@ -61,11 +61,8 @@ const Viewer: React.FC = (): ReactElement => {
     if (treeNode == null || treeNode.is_dir) {
       return;
     }
-    if (!treeNode.cached) {
-      dispatch(getNoteAsync(treeNode.path)).then(unwrapResult)
-        .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
-      return;
-    }
+    dispatch(getNoteAsync(treeNode.path)).then(unwrapResult)
+      .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
     setNote(treeNode);
   }, [tree, path])
 

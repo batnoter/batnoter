@@ -98,7 +98,13 @@ export const getNoteAsync = createAsyncThunk(
   async (path: string) => {
     const response = await getNote(path) as NoteResponsePayload;
     return response;
+  }, {
+  condition: (path, { getState }) => {
+    const state = getState() as RootState;
+    const node = TreeUtil.searchNode(state.notes.tree, path);
+    return !node?.cached;
   }
+}
 );
 
 export const saveNoteAsync = createAsyncThunk(
