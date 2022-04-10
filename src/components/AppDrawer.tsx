@@ -9,8 +9,9 @@ import { useModal } from 'mui-modal-provider';
 import React, { ReactElement, SyntheticEvent, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { deleteNoteAsync, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
+import { deleteNoteAsync, selectNotesTree, TreeNode } from '../reducer/noteSlice';
 import { User } from '../reducer/userSlice';
+import TreeUtil from '../util/TreeUtil';
 import { confirmDeleteNote, getTitleFromFilename, isFilePath, splitPath } from '../util/util';
 import StyledTreeItem from './StyledTreeItem';
 
