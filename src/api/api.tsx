@@ -12,108 +12,114 @@ const getHeaders = (): HeadersInit => {
   return headers;
 }
 
-const catchError = (error: string): Promise<string> => {
-  console.log(error);
-  return Promise.reject(error);
-}
-
-export const getUserProfile = (): Promise<User | string> => {
+export const getUserProfile = (): Promise<User> => {
   // there is no point in calling profile api without a token, since it will fail anyway due to missing token
   // so in case of page reload etc we call this endpoint only when there is token in local-storage, which implies
   // that user has already logged-in
   return localStorage.getItem("token") ? fetch(`${API_URL}/user/me`, { headers: getHeaders() }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("fetching user profile failed");
+      return Promise.reject(await res.json());
     }
     return await res.json();
-  }).catch(catchError) : Promise.reject("token missing. fetching user profile failed");
+  }) : Promise.reject("token missing. fetching user profile failed");
 }
 
-export const getUserRepos = (): Promise<Repo[] | string> => {
+export const getUserRepos = (): Promise<Repo[]> => {
   return fetch(`${API_URL}/user/preference/repo`, { headers: getHeaders() }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("fetching user's github repos failed");
+      return Promise.reject(await res.json());
     }
     return await res.json();
-  }).catch(catchError);
+  })
 }
 
-export const saveDefaultRepo = (defaultRepo: Repo): Promise<undefined | string> => {
+export const autoSetupRepo = (repoName: string): Promise<undefined> => {
+  return fetch(`${API_URL}/user/preference/auto/repo?repoName=${repoName}`, {
+    method: "POST",
+    headers: getHeaders()
+  }).then(async (res) => {
+    if (!res.ok) {
+      return Promise.reject(await res.json());
+    }
+  })
+}
+
+export const saveDefaultRepo = (defaultRepo: Repo): Promise<undefined> => {
   return fetch(`${API_URL}/user/preference/repo`, {
     method: "POST",
     body: JSON.stringify(defaultRepo),
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("saving user's default repo failed");
+      return Promise.reject(await res.json());
     }
-  }).catch(catchError)
+  })
 }
 
-export const searchNotes = (page?: number, path?: string, query?: string): Promise<NotePage | string> => {
+export const searchNotes = (page?: number, path?: string, query?: string): Promise<NotePage> => {
   return fetch(`${API_URL}/search/notes?page=` + (page || 1) + (path ? `path=${path}` : "") + (query ? `query=${query}` : ""),
     { headers: getHeaders() }).then(async (res) => {
       if (!res.ok) {
-        return Promise.reject("fetching notes failed");
+        return Promise.reject(await res.json());
       }
       return await res.json();
-    }).catch(catchError)
+    })
 }
 
-export const getNotesTree = (): Promise<NoteResponsePayload[] | string> => {
+export const getNotesTree = (): Promise<NoteResponsePayload[]> => {
   return fetch(`${API_URL}/tree/notes`, {
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("fetching notes tree failed");
+      return Promise.reject(await res.json());
     }
     return await res.json();
-  }).catch(catchError)
+  })
 }
 
-export const getAllNotes = (path: string): Promise<NoteResponsePayload[] | string> => {
+export const getAllNotes = (path: string): Promise<NoteResponsePayload[]> => {
   return fetch(`${API_URL}/notes` + (path && "?path=" + encodeURIComponent(path)), {
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("fetching notes failed");
+      return Promise.reject(await res.json());
     }
     return await res.json();
-  }).catch(catchError)
+  })
 }
 
-export const getNote = (path: string): Promise<NoteResponsePayload | string> => {
+export const getNote = (path: string): Promise<NoteResponsePayload> => {
   return fetch(`${API_URL}/notes/` + encodeURIComponent(path), {
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("fetching note failed");
+      return Promise.reject(await res.json());
     }
     return await res.json();
-  }).catch(catchError)
+  })
 }
 
-export const saveNote = (path: string, content: string, sha?: string): Promise<NoteResponsePayload | string> => {
+export const saveNote = (path: string, content: string, sha?: string): Promise<NoteResponsePayload> => {
   return fetch(`${API_URL}/notes/` + encodeURIComponent(path), {
     method: "POST",
     body: JSON.stringify({ sha: sha, content: content }),
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("saving note failed");
+      return Promise.reject(await res.json());
     }
     return await res.json();
-  }).catch(catchError)
+  })
 }
 
-export const deleteNote = (path: string, sha?: string): Promise<undefined | string> => {
+export const deleteNote = (path: string, sha?: string): Promise<undefined> => {
   return fetch(`${API_URL}/notes/` + encodeURIComponent(path), {
     method: "DELETE",
     body: JSON.stringify({ sha: sha }),
     headers: getHeaders()
   }).then(async (res) => {
     if (!res.ok) {
-      return Promise.reject("deleting note failed");
+      return Promise.reject(await res.json());
     }
-  }).catch(catchError)
+  })
 }
