@@ -6,7 +6,8 @@ import React, { ReactElement, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { deleteNoteAsync, getNotesAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode, TreeUtil } from '../reducer/noteSlice';
+import { deleteNoteAsync, getNotesAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode } from '../reducer/noteSlice';
+import TreeUtil from '../util/TreeUtil';
 import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage } from '../util/util';
 import NoteCard from './NoteCard';
 
