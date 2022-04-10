@@ -1,7 +1,7 @@
 
 import SaveIcon from '@mui/icons-material/Save';
 import { LoadingButton } from '@mui/lab';
-import { Alert, Autocomplete, Breadcrumbs, Button, Container, Link, styled, TextField, Theme } from '@mui/material';
+import { Alert, Autocomplete, Breadcrumbs, Button, CircularProgress, Container, Link, styled, TextField, Theme } from '@mui/material';
 import { unwrapResult } from '@reduxjs/toolkit';
 import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
 import MDEditor from 'react-markdown-editor-lite';
@@ -47,6 +47,11 @@ const isLoading = (apiStatus: APIStatus): boolean => {
   return getNoteAsync === APIStatusType.LOADING || saveNoteAsync === APIStatusType.LOADING;
 }
 
+const isGetNoteLoading = (apiStatus: APIStatus): boolean => {
+  const { getNoteAsync } = apiStatus;
+  return getNoteAsync === APIStatusType.LOADING;
+}
+
 const isFailed = (apiStatus: APIStatus): boolean => {
   const { getNoteAsync, saveNoteAsync } = apiStatus;
   return getNoteAsync === APIStatusType.FAIL || saveNoteAsync === APIStatusType.FAIL;
@@ -75,6 +80,11 @@ const Editor: React.FC = (): ReactElement => {
   const [pathAutoCompleteOptions, setPathAutoCompleteOptions] = useState(TreeUtil.getChildDirs(tree, path));
 
   useEffect(() => {
+    // This should be the first useEffect hook. Declare other useEffect hooks below this one.
+    dispatch(resetStatus());
+  }, [path])
+
+  useEffect(() => {
     const treeNode = TreeUtil.searchNode(tree, path);
     const dirPathArray = splitPath(path);
     editMode && dirPathArray.pop(); // remove the filename from path
@@ -95,9 +105,7 @@ const Editor: React.FC = (): ReactElement => {
     setContent(treeNode?.content || '');
   }, [tree, path, editMode])
 
-  useEffect(() => {
-    dispatch(resetStatus());
-  }, [path])
+
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -132,61 +140,63 @@ const Editor: React.FC = (): ReactElement => {
 
   return (
     <Container maxWidth="md">
-      {isFailed(apiStatus) && errorMessage != null && <Alert severity="error" sx={{ width: "100%" }}>{errorMessage}</Alert>}
-      <form noValidate autoComplete="off" onSubmit={handleSubmit}>
-        <Autocomplete freeSolo fullWidth multiple openOnFocus value={dirPathArray} options={pathAutoCompleteOptions}
-          disabled={editMode}
-          onChange={(e, newPath) => {
-            setDirPathArray([...newPath]);
-            setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, newPath.join("/")));
-          }}
+      {isGetNoteLoading(apiStatus) ? <CircularProgress sx={{ position: "relative", top: "50%", left: "50%" }} /> :
+        <form noValidate autoComplete="off" onSubmit={handleSubmit}>
+          {isFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%" }}>{errorMessage}</Alert>}
+          <Autocomplete freeSolo fullWidth multiple openOnFocus value={dirPathArray} options={pathAutoCompleteOptions}
+            disabled={editMode}
+            onChange={(e, newPath) => {
+              setDirPathArray([...newPath]);
+              setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, newPath.join("/")));
+            }}
 
-          renderTags={(tagValue) => (
-            <Breadcrumbs itemsAfterCollapse={2}>
-              {tagValue.map((option) => (<Link key={option} underline="hover" color="inherit"> {option} </Link>))}
-              <span>{/* just a placeholder to show a / at the end */}</span>
-            </Breadcrumbs>
-          )}
+            renderTags={(tagValue) => (
+              <Breadcrumbs itemsAfterCollapse={2}>
+                {tagValue.map((option) => (<Link key={option} underline="hover" color="inherit"> {option} </Link>))}
+                <span>{/* just a placeholder to show a / at the end */}</span>
+              </Breadcrumbs>
+            )}
 
-          inputValue={endDir}
-          onInputChange={(e, newInputValue) => {
-            setDirPathError(false);
-            if (newInputValue.indexOf('/') > -1) {
-              const trimmedPath = newInputValue.trim().replace(/^\/+|\/+$/g, '');
-              const pathArray = [...dirPathArray, ...splitPath(trimmedPath)];
-              if (trimmedPath) {
-                setDirPathArray(pathArray);
-                setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, pathArray.join("/")));
+            inputValue={endDir}
+            onInputChange={(e, newInputValue) => {
+              setDirPathError(false);
+              if (newInputValue.indexOf('/') > -1) {
+                const trimmedPath = newInputValue.trim().replace(/^\/+|\/+$/g, '');
+                const pathArray = [...dirPathArray, ...splitPath(trimmedPath)];
+                if (trimmedPath) {
+                  setDirPathArray(pathArray);
+                  setPathAutoCompleteOptions(TreeUtil.getChildDirs(tree, pathArray.join("/")));
+                }
+                setEndDir('');
+                return;
               }
-              setEndDir('');
-              return;
-            }
-            setEndDir(newInputValue);
-          }}
+              setEndDir(newInputValue);
+            }}
 
-          renderInput={(params) => (
-            <TextField {...params}
-              helperText="Only alphanumeric characters, space, hyphen (-) and forward slash (/) are allowed."
-              label="Path" variant="outlined" fullWidth error={dirPathError} placeholder="Select Path..." sx={{ my: 2, display: "block" }} />
-          )}
-        />
+            renderInput={(params) => (
+              <TextField {...params}
+                helperText="Only alphanumeric characters, space, hyphen (-) and forward slash (/) are allowed."
+                label="Path" variant="outlined" fullWidth error={dirPathError} placeholder="Select Path..." sx={{ my: 2, display: "block" }} />
+            )}
+          />
 
-        <TextField sx={{ my: 2, display: "block" }}
-          helperText="Only alphanumeric characters, space and hyphen (-) are allowed."
-          value={title} disabled={editMode}
-          onChange={(e) => { setTitleError(false); setTitle(e.target.value) }} label="Note Title"
-          variant="outlined" fullWidth required error={titleError}
-        />
+          <TextField sx={{ my: 2, display: "block" }}
+            helperText="Only alphanumeric characters, space and hyphen (-) are allowed."
+            value={title} disabled={editMode}
+            onChange={(e) => { setTitleError(false); setTitle(e.target.value) }} label="Note Title"
+            variant="outlined" fullWidth required error={titleError}
+          />
 
-        <StyledMDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
-          value={content}
-          renderHTML={(text: string) => <CustomReactMarkdown>{text}</CustomReactMarkdown>}
-          placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
-          onChange={({ text }: { text: string }) => { setContentError(false); setContent(text) }} />
+          <StyledMDEditor view={{ menu: true, md: true, html: false }} canView={{ menu: true, md: true, html: true, fullScreen: false, hideMenu: false, both: true }}
+            value={content}
+            renderHTML={(text: string) => <CustomReactMarkdown>{text}</CustomReactMarkdown>}
+            placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
+            onChange={({ text }: { text: string }) => { setContentError(false); setContent(text) }} />
 
-        <LoadingButton loading={isLoading(apiStatus)} type="submit" variant="contained" startIcon={<SaveIcon />} sx={{ float: 'right' }}>SAVE</LoadingButton>
-        <Button onClick={() => navigate('/')} variant="outlined" sx={{ float: 'right', mx: 1 }} >CANCEL</Button>
-      </form>
+          <LoadingButton loading={isLoading(apiStatus)} type="submit" variant="contained" startIcon={<SaveIcon />} sx={{ float: 'right' }}>SAVE</LoadingButton>
+          <Button onClick={() => navigate('/')} variant="outlined" sx={{ float: 'right', mx: 1 }} >CANCEL</Button>
+        </form>
+      }
     </Container>
   )
 }
