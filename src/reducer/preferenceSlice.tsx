@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getUserRepos, saveDefaultRepo } from "../api/api";
+import { autoSetupRepo, getUserRepos, saveDefaultRepo } from "../api/api";
 import { RootState } from "../app/store";
+import { APIStatus, APIStatusType } from "./common";
 
 export interface Repo {
   name: string
@@ -8,16 +9,18 @@ export interface Repo {
   default_branch?: string
 }
 
-export enum PreferenceStatus { LOADING, IDLE, FAIL }
-
 interface PreferenceState {
   userRepos: Repo[]
-  status: PreferenceStatus
+  status: APIStatus
 }
 
 const initialState: PreferenceState = {
   userRepos: [],
-  status: PreferenceStatus.IDLE
+  status: {
+    getUserReposAsync: APIStatusType.IDLE,
+    autoSetupRepoAsync: APIStatusType.IDLE,
+    saveDefaultRepoAsync: APIStatusType.IDLE,
+  }
 }
 
 export const getUserReposAsync = createAsyncThunk(
@@ -28,6 +31,13 @@ export const getUserReposAsync = createAsyncThunk(
     return response;
   }
 )
+
+export const autoSetupRepoAsync = createAsyncThunk(
+  'user/autoSetupRepo',
+  async (repoName: string) => {
+    await autoSetupRepo(repoName);
+  }
+);
 
 export const saveDefaultRepoAsync = createAsyncThunk(
   'user/saveDefaultRepo',
@@ -44,29 +54,39 @@ export const preferenceSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getUserReposAsync.pending, (state) => {
-        state.status = PreferenceStatus.LOADING;
+        state.status.getUserReposAsync = APIStatusType.LOADING;
       })
       .addCase(getUserReposAsync.fulfilled, (state, action) => {
-        state.status = PreferenceStatus.IDLE;
+        state.status.getUserReposAsync = APIStatusType.IDLE;
         state.userRepos = action.payload as Repo[];
       })
       .addCase(getUserReposAsync.rejected, (state) => {
-        state.status = PreferenceStatus.FAIL;
+        state.status.getUserReposAsync = APIStatusType.FAIL;
         state.userRepos = [];
       })
 
+      .addCase(autoSetupRepoAsync.pending, (state) => {
+        state.status.autoSetupRepoAsync = APIStatusType.LOADING;
+      })
+      .addCase(autoSetupRepoAsync.fulfilled, (state) => {
+        state.status.autoSetupRepoAsync = APIStatusType.IDLE;
+      })
+      .addCase(autoSetupRepoAsync.rejected, (state) => {
+        state.status.autoSetupRepoAsync = APIStatusType.FAIL;
+      })
+
       .addCase(saveDefaultRepoAsync.pending, (state) => {
-        state.status = PreferenceStatus.LOADING;
+        state.status.saveDefaultRepoAsync = APIStatusType.LOADING;
       })
       .addCase(saveDefaultRepoAsync.fulfilled, (state) => {
-        state.status = PreferenceStatus.IDLE;
+        state.status.saveDefaultRepoAsync = APIStatusType.IDLE;
       })
       .addCase(saveDefaultRepoAsync.rejected, (state) => {
-        state.status = PreferenceStatus.FAIL;
+        state.status.saveDefaultRepoAsync = APIStatusType.FAIL;
       });
   },
 })
 
 export const selectUserRepos = (state: RootState): Repo[] => state.preference.userRepos;
-export const selectPreferenceStatus = (state: RootState): PreferenceStatus => state.preference.status;
+export const selectPreferenceStatus = (state: RootState): APIStatus => state.preference.status;
 export default preferenceSlice.reducer;

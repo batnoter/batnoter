@@ -4,17 +4,18 @@ import { Avatar, Box, Button, CircularProgress, Menu, MenuItem, Toolbar, Typogra
 import AppBarComponent from '@mui/material/AppBar';
 import React, { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
-import { User, UserStatus } from '../reducer/userSlice';
+import { APIStatusType } from '../reducer/common';
+import { User } from '../reducer/userSlice';
 
 interface Props {
   user: User | null
-  userStatus: UserStatus
-  setUserStatus: (userStatus: UserStatus) => void
+  userStatus: APIStatusType
+  setUserStatus: (userStatus: APIStatusType) => void
   handleLogout: () => void
 }
 
 const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout }): ReactElement => {
-  const isLoading = userStatus === UserStatus.LOADING
+  const isLoading = userStatus === APIStatusType.LOADING
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -35,13 +36,13 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
           (
             !isLoading ?
               <Button color="inherit" href="/api/v1/oauth2/login/github" endIcon={<LoginIcon />}
-                onClick={() => setUserStatus(UserStatus.LOADING)}>Login</Button>
+                onClick={() => setUserStatus(APIStatusType.LOADING)}>Login</Button>
               : <CircularProgress color="inherit" />
           )
           :
           <>
             <Button color="inherit" component={Link} to={"/new"} startIcon={<AddCircleIcon />}
-              onClick={() => setUserStatus(UserStatus.LOADING)}>Create Note</Button>
+              onClick={() => setUserStatus(APIStatusType.LOADING)}>Create Note</Button>
             <Avatar onClick={handleMenu} alt={user.name} src={user.avatar_url} sx={{ "cursor": "pointer" }}></Avatar>
             <Menu autoFocus={false} sx={{ mt: '5px' }} id="menu-appbar" anchorEl={anchorEl} anchorOrigin={{
               vertical: 'bottom', horizontal: 'right'

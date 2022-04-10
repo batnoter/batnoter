@@ -1,14 +1,16 @@
 
 import SaveIcon from '@mui/icons-material/Save';
 import { LoadingButton } from '@mui/lab';
-import { Autocomplete, Breadcrumbs, Button, Container, Link, styled, TextField, Theme } from '@mui/material';
+import { Alert, Autocomplete, Breadcrumbs, Button, Container, Link, styled, TextField, Theme } from '@mui/material';
+import { unwrapResult } from '@reduxjs/toolkit';
 import React, { FormEvent, ReactElement, useEffect, useState } from 'react';
 import MDEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getNoteAsync, NoteStatus, saveNoteAsync, selectNoteStatus, selectNotesTree, TreeUtil } from '../reducer/noteSlice';
-import { appendPath, getDecodedPath, getFilenameFromTitle, getTitleFromFilename, splitPath } from '../util/util';
+import { APIStatus, APIStatusType } from '../reducer/common';
+import { getNoteAsync, resetStatus, saveNoteAsync, selectNoteStatus, selectNotesTree, TreeUtil } from '../reducer/noteSlice';
+import { appendPath, getDecodedPath, getFilenameFromTitle, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from '../util/util';
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
 const VALID_DIR_PATH_REGEX = /^((?!\/)([a-zA-Z0-9-]([/]|[^\S\r\n])?)*)([a-zA-Z0-9-])$/gm;
@@ -40,6 +42,16 @@ const StyledMDEditor = styled(MDEditor)(
   `,
 );
 
+const isLoading = (apiStatus: APIStatus): boolean => {
+  const { getNoteAsync, saveNoteAsync } = apiStatus;
+  return getNoteAsync === APIStatusType.LOADING || saveNoteAsync === APIStatusType.LOADING;
+}
+
+const isFailed = (apiStatus: APIStatus): boolean => {
+  const { getNoteAsync, saveNoteAsync } = apiStatus;
+  return getNoteAsync === APIStatusType.FAIL || saveNoteAsync === APIStatusType.FAIL;
+}
+
 const Editor: React.FC = (): ReactElement => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -49,7 +61,8 @@ const Editor: React.FC = (): ReactElement => {
   const editMode = pathname.startsWith('/edit');
   const path = getDecodedPath(searchParams.get('path'));
   const tree = useAppSelector(selectNotesTree);
-  const status = useAppSelector(selectNoteStatus);
+  const apiStatus = useAppSelector(selectNoteStatus);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const [sha, setSHA] = useState('');
   const [title, setTitle] = useState('');
@@ -72,7 +85,8 @@ const Editor: React.FC = (): ReactElement => {
       return;
     }
     if (!treeNode.cached) {
-      dispatch(getNoteAsync(treeNode.path));
+      dispatch(getNoteAsync(treeNode.path)).then(unwrapResult)
+        .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
       return;
     }
 
@@ -80,6 +94,10 @@ const Editor: React.FC = (): ReactElement => {
     setTitle(getTitleFromFilename(treeNode.name));
     setContent(treeNode?.content || '');
   }, [tree, path, editMode])
+
+  useEffect(() => {
+    dispatch(resetStatus());
+  }, [path])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -107,12 +125,14 @@ const Editor: React.FC = (): ReactElement => {
     }
 
     const fullPath = appendPath(dirPath, filename);
-    await dispatch(saveNoteAsync({ path: fullPath, content: content, sha: sha }));
+    await dispatch(saveNoteAsync({ path: fullPath, content: content, sha: sha })).then(unwrapResult)
+      .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
     navigate("/?path=" + encodeURIComponent(dirPath));
   }
 
   return (
     <Container maxWidth="md">
+      {isFailed(apiStatus) && errorMessage != null && <Alert severity="error" sx={{ width: "100%" }}>{errorMessage}</Alert>}
       <form noValidate autoComplete="off" onSubmit={handleSubmit}>
         <Autocomplete freeSolo fullWidth multiple openOnFocus value={dirPathArray} options={pathAutoCompleteOptions}
           disabled={editMode}
@@ -164,7 +184,7 @@ const Editor: React.FC = (): ReactElement => {
           placeholder="Note Content*" className={"batnoter-md-editor " + (contentError ? "error" : "")}
           onChange={({ text }: { text: string }) => { setContentError(false); setContent(text) }} />
 
-        <LoadingButton loading={status === NoteStatus.LOADING} type="submit" variant="contained" startIcon={<SaveIcon />} sx={{ float: 'right' }}>SAVE</LoadingButton>
+        <LoadingButton loading={isLoading(apiStatus)} type="submit" variant="contained" startIcon={<SaveIcon />} sx={{ float: 'right' }}>SAVE</LoadingButton>
         <Button onClick={() => navigate('/')} variant="outlined" sx={{ float: 'right', mx: 1 }} >CANCEL</Button>
       </form>
     </Container>

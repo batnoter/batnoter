@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { deleteNote, getAllNotes, getNote, getNotesTree, saveNote, searchNotes } from "../api/api";
 import { RootState } from "../app/store";
+import { APIStatus, APIStatusType } from "./common";
 
 export interface SearchParams {
   page?: number
@@ -32,13 +33,11 @@ export interface NotePage {
   notes: NoteResponsePayload[]
 }
 
-export enum NoteStatus { LOADING, IDLE, FAIL }
-
 interface NoteState {
   page: NotePage
   tree: TreeNode
   current: NoteResponsePayload | null
-  status: NoteStatus
+  status: APIStatus
 }
 
 const initialState: NoteState = {
@@ -53,7 +52,14 @@ const initialState: NoteState = {
     is_dir: true
   },
   current: null,
-  status: NoteStatus.IDLE
+  status: {
+    searchNotesAsync: APIStatusType.IDLE,
+    getNotesTreeAsync: APIStatusType.IDLE,
+    getNotesAsync: APIStatusType.IDLE,
+    getNoteAsync: APIStatusType.IDLE,
+    saveNoteAsync: APIStatusType.IDLE,
+    deleteNoteAsync: APIStatusType.IDLE,
+  }
 }
 
 export const searchNotesAsync = createAsyncThunk(
@@ -118,89 +124,90 @@ export const noteSlice = createSlice({
   name: "notes",
   initialState,
   reducers: {
+    resetStatus: (state) => { state.status = initialState.status; }
   },
   extraReducers: (builder) => {
     builder
       .addCase(searchNotesAsync.pending, (state) => {
-        state.status = NoteStatus.LOADING;
+        state.status.searchNotesAsync = APIStatusType.LOADING;
       })
       .addCase(searchNotesAsync.fulfilled, (state, action) => {
         state.page = action.payload as NotePage;
         const tree = TreeUtil.parse(state.tree, state.page.notes, true);
         state.tree = tree;
-        state.status = NoteStatus.IDLE;
+        state.status.searchNotesAsync = APIStatusType.IDLE;
       })
       .addCase(searchNotesAsync.rejected, (state) => {
         state.page = initialState.page;
-        state.status = NoteStatus.FAIL;
+        state.status.searchNotesAsync = APIStatusType.FAIL;
       })
 
       .addCase(getNotesTreeAsync.pending, (state) => {
-        state.status = NoteStatus.LOADING;
+        state.status.getNotesTreeAsync = APIStatusType.LOADING;
       })
       .addCase(getNotesTreeAsync.fulfilled, (state, action) => {
         state.page.notes = action.payload;
         const tree = TreeUtil.parse(initialState.tree, state.page.notes, false);
         state.tree = tree;
-        state.status = NoteStatus.IDLE;
+        state.status.getNotesTreeAsync = APIStatusType.IDLE;
       })
       .addCase(getNotesTreeAsync.rejected, (state) => {
         state.page.notes = initialState.page.notes;
-        state.status = NoteStatus.FAIL;
+        state.status.getNotesTreeAsync = APIStatusType.FAIL;
       })
 
       .addCase(getNotesAsync.pending, (state) => {
-        state.status = NoteStatus.LOADING;
+        state.status.getNotesAsync = APIStatusType.LOADING;
       })
       .addCase(getNotesAsync.fulfilled, (state, action) => {
         state.page.notes = action.payload;
         const tree = TreeUtil.parse(state.tree, state.page.notes, true);
         state.tree = tree;
-        state.status = NoteStatus.IDLE;
+        state.status.getNotesAsync = APIStatusType.IDLE;
       })
       .addCase(getNotesAsync.rejected, (state) => {
         state.page.notes = initialState.page.notes;
-        state.status = NoteStatus.FAIL;
+        state.status.getNotesAsync = APIStatusType.FAIL;
       })
 
       .addCase(getNoteAsync.pending, (state) => {
         state.current = null
-        state.status = NoteStatus.LOADING;
+        state.status.getNoteAsync = APIStatusType.LOADING;
       })
       .addCase(getNoteAsync.fulfilled, (state, action) => {
         state.current = action.payload;
         const tree = TreeUtil.parse(state.tree, [action.payload]);
         state.tree = tree;
-        state.status = NoteStatus.IDLE;
+        state.status.getNoteAsync = APIStatusType.IDLE;
       })
       .addCase(getNoteAsync.rejected, (state) => {
-        state.status = NoteStatus.FAIL;
+        state.status.getNoteAsync = APIStatusType.FAIL;
       })
 
       .addCase(saveNoteAsync.pending, (state) => {
-        state.status = NoteStatus.LOADING;
+        state.status.saveNoteAsync = APIStatusType.LOADING;
       })
       .addCase(saveNoteAsync.fulfilled, (state, action) => {
         state.page.notes = state.page.notes.filter(n => n.sha !== action.payload.sha)
         state.page.notes.push(action.payload)
         const tree = TreeUtil.parse(state.tree, [action.payload]);
         state.tree = tree;
-        state.status = NoteStatus.IDLE;
+        state.status.saveNoteAsync = APIStatusType.IDLE;
       })
       .addCase(saveNoteAsync.rejected, (state) => {
-        state.status = NoteStatus.FAIL;
+        state.status.saveNoteAsync = APIStatusType.FAIL;
       })
 
       .addCase(deleteNoteAsync.pending, (state) => {
-        state.status = NoteStatus.LOADING;
+        state.status.deleteNoteAsync = APIStatusType.LOADING;
       })
       .addCase(deleteNoteAsync.fulfilled, (state, action) => {
         state.page.notes = state.page.notes.filter(n => n.path !== action.payload.path)
         TreeUtil.deleteNode(state.tree, action.payload.path)
-        state.status = NoteStatus.IDLE;
+        state.status.deleteNoteAsync = APIStatusType.IDLE;
       })
       .addCase(deleteNoteAsync.rejected, (state) => {
-        state.status = NoteStatus.FAIL;
+        state.status.deleteNoteAsync = APIStatusType.FAIL;
       });
   },
 })
@@ -277,9 +284,9 @@ export class TreeUtil {
   }
 }
 
-
+export const { resetStatus } = noteSlice.actions;
 export const selectCurrentNote = (state: RootState): NoteResponsePayload | null => state.notes.current;
 export const selectNotesPage = (state: RootState): NotePage => state.notes.page;
 export const selectNotesTree = (state: RootState): TreeNode => state.notes.tree;
-export const selectNoteStatus = (state: RootState): NoteStatus => state.notes.status;
+export const selectNoteStatus = (state: RootState): APIStatus => state.notes.status;
 export default noteSlice.reducer;
