@@ -10,7 +10,8 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { deleteNoteAsync, getNoteAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode, TreeUtil } from "../reducer/noteSlice";
+import { deleteNoteAsync, getNoteAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode } from "../reducer/noteSlice";
+import TreeUtil from '../util/TreeUtil';
 import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from "../util/util";
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
