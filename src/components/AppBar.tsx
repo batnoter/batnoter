@@ -1,9 +1,13 @@
 import { Login as LoginIcon } from '@mui/icons-material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import { Avatar, Box, Button, CircularProgress, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import { Avatar, Button, CircularProgress, Link, Menu, MenuItem, SvgIconTypeMap, Toolbar, Typography } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
+import { OverridableComponent } from '@mui/material/OverridableComponent';
+import { HelpCircle } from 'mdi-material-ui';
 import React, { ReactElement } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { APIStatusType } from '../reducer/common';
 import { User } from '../reducer/userSlice';
 
@@ -12,6 +16,17 @@ interface Props {
   userStatus: APIStatusType
   setUserStatus: (userStatus: APIStatusType) => void
   handleLogout: () => void
+}
+
+const URL_REPO = "https://github.com/vivekweb2013/batnoter"
+const URL_FAQ = `${URL_REPO}/wiki/FAQ`
+const URL_ISSUES = `${URL_REPO}/issues`
+const URL_TWITTER_HANDLE = "https://twitter.com/batnoter";
+
+const getExternalLink = (url: string, label: string, Icon: OverridableComponent<SvgIconTypeMap>): ReactElement => {
+  return <Link href={url} sx={{ mx: 1, color: 'inherit' }} target="_blank" rel="noopener">
+    <Icon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />{label}
+  </Link>
 }
 
 const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout }): ReactElement => {
@@ -28,11 +43,14 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
 
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-      <Toolbar variant="dense">
+      <Toolbar variant="dense" sx={{ justifyContent: "space-between" }}>
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: "flex" }}>
           GIT NOTER
         </Typography>
-        <Box sx={{ flexGrow: 1 }}></Box> {user == null ?
+        {getExternalLink(URL_TWITTER_HANDLE, "@batnoter", TwitterIcon)}
+        {getExternalLink(URL_FAQ, "faq", HelpCircle)}
+        {getExternalLink(URL_ISSUES, "bug report", BugReportIcon)}
+        {user == null ?
           (
             !isLoading ?
               <Button color="inherit" href="/api/v1/oauth2/login/github" endIcon={<LoginIcon />}
@@ -41,13 +59,15 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
           )
           :
           <>
-            <Button color="inherit" component={Link} to={"/new"} startIcon={<AddCircleIcon />}
-              onClick={() => setUserStatus(APIStatusType.LOADING)}>Create Note</Button>
+            <Link component={NavLink} to={"/new"} sx={{ mx: 1, color: 'inherit' }}>
+              <AddCircleIcon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />create note
+            </Link>
+
             <Avatar onClick={handleMenu} alt={user.name} src={user.avatar_url} sx={{ "cursor": "pointer" }}></Avatar>
             <Menu autoFocus={false} sx={{ mt: '5px' }} id="menu-appbar" anchorEl={anchorEl} anchorOrigin={{
               vertical: 'bottom', horizontal: 'right'
             }} transformOrigin={{ vertical: 'top', horizontal: 'right', }} open={Boolean(anchorEl)} onClose={handleClose}>
-              <MenuItem component={Link} to={"/settings"} onClick={handleClose}>Setting</MenuItem>
+              <MenuItem component={NavLink} to={"/settings"} onClick={handleClose}>Setting</MenuItem>
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </>
