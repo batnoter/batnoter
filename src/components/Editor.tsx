@@ -9,7 +9,7 @@ import 'react-markdown-editor-lite/lib/index.css';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { getNoteAsync, resetStatus, saveNoteAsync, selectNoteStatus, selectNotesTree } from '../reducer/noteSlice';
+import { getNoteAsync, resetStatus, saveNoteAsync, selectNoteAPIStatus, selectNotesTree } from '../reducer/noteSlice';
 import TreeUtil from '../util/TreeUtil';
 import { appendPath, getDecodedPath, getFilenameFromTitle, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from '../util/util';
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
@@ -67,7 +67,7 @@ const Editor: React.FC = (): ReactElement => {
   const editMode = pathname.startsWith('/edit');
   const path = getDecodedPath(searchParams.get('path'));
   const tree = useAppSelector(selectNotesTree);
-  const apiStatus = useAppSelector(selectNoteStatus);
+  const apiStatus = useAppSelector(selectNoteAPIStatus);
   const [errorMessage, setErrorMessage] = React.useState("");
 
   const [sha, setSHA] = useState('');

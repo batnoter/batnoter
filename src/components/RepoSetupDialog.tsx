@@ -9,7 +9,7 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import React, { ReactElement } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { autoSetupRepoAsync, selectPreferenceStatus } from '../reducer/preferenceSlice';
+import { autoSetupRepoAsync, selectPreferenceAPIStatus } from '../reducer/preferenceSlice';
 import { getSanitizedErrorMessage } from '../util/util';
 import RepoSelectDialog from './RepoSelectDialog';
 
@@ -35,7 +35,7 @@ const RepoSetupDialog: React.FC<Props> = ({ open, setOpen }): ReactElement => {
   const [errorMessage, setErrorMessage] = React.useState("");
 
   const dispatch = useAppDispatch();
-  const apiStatus = useAppSelector(selectPreferenceStatus);
+  const apiStatus = useAppSelector(selectPreferenceAPIStatus);
 
   const handleRepoSelect = () => {
     setOpenRepoSelectDialog(true);
