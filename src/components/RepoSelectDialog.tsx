@@ -12,7 +12,7 @@ import { SourceBranch } from 'mdi-material-ui';
 import React, { ReactElement } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { getUserReposAsync, saveDefaultRepoAsync, selectPreferenceStatus, selectUserRepos } from '../reducer/preferenceSlice';
+import { getUserReposAsync, saveDefaultRepoAsync, selectPreferenceAPIStatus, selectUserRepos } from '../reducer/preferenceSlice';
 import { getUserProfileAsync } from '../reducer/userSlice';
 
 interface Props {
@@ -32,7 +32,7 @@ const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): Reac
     dispatch(getUserReposAsync())
   }, [])
   const repos = useAppSelector(selectUserRepos);
-  const apiStatus = useAppSelector(selectPreferenceStatus);
+  const apiStatus = useAppSelector(selectPreferenceAPIStatus);
 
   const [repoName, setDefaultRepoName] = React.useState<string>();
 

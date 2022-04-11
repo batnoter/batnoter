@@ -6,7 +6,7 @@ import React, { ReactElement, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { deleteNoteAsync, getNotesAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode } from '../reducer/noteSlice';
+import { deleteNoteAsync, getNotesAsync, resetStatus, selectNoteAPIStatus, selectNotesTree, TreeNode } from '../reducer/noteSlice';
 import TreeUtil from '../util/TreeUtil';
 import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage } from '../util/util';
 import NoteCard from './NoteCard';
@@ -26,7 +26,7 @@ const Finder = (): ReactElement => {
   const dispatch = useAppDispatch();
   const { showModal } = useModal();
   const tree = useAppSelector(selectNotesTree);
-  const apiStatus = useAppSelector(selectNoteStatus);
+  const apiStatus = useAppSelector(selectNoteAPIStatus);
   const [searchParams] = useSearchParams();
   const path = getDecodedPath(searchParams.get('path'));
   const [errorMessage, setErrorMessage] = React.useState("");

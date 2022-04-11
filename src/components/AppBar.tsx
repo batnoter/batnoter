@@ -13,8 +13,8 @@ import { User } from '../reducer/userSlice';
 
 interface Props {
   user: User | null
-  userStatus: APIStatusType
-  setUserStatus: (userStatus: APIStatusType) => void
+  userAPIStatus: APIStatusType
+  handleLogin: () => void
   handleLogout: () => void
 }
 
@@ -29,8 +29,11 @@ const getExternalLink = (url: string, label: string, Icon: OverridableComponent<
   </Link>
 }
 
-const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout }): ReactElement => {
-  const isLoading = userStatus === APIStatusType.LOADING
+const isLoading = (apiStatus: APIStatusType): boolean => {
+  return apiStatus === APIStatusType.LOADING;
+}
+
+const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogout }): ReactElement => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -52,9 +55,7 @@ const AppBar: React.FC<Props> = ({ user, userStatus, setUserStatus, handleLogout
         {getExternalLink(URL_ISSUES, "bug report", BugReportIcon)}
         {user == null ?
           (
-            !isLoading ?
-              <Button color="inherit" href="/api/v1/oauth2/login/github" endIcon={<LoginIcon />}
-                onClick={() => setUserStatus(APIStatusType.LOADING)}>Login</Button>
+            !isLoading(userAPIStatus) ? <Button color="inherit" endIcon={<LoginIcon />} onClick={() => handleLogin()}>Login</Button>
               : <CircularProgress color="inherit" />
           )
           :
