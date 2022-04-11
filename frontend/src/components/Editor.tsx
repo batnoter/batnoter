@@ -103,8 +103,6 @@ const Editor: React.FC = (): ReactElement => {
     setContent(treeNode?.content || '');
   }, [tree, path, editMode])
 
-
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -131,9 +129,9 @@ const Editor: React.FC = (): ReactElement => {
     }
 
     const fullPath = appendPath(dirPath, filename);
-    await dispatch(saveNoteAsync({ path: fullPath, content: content, sha: sha })).then(unwrapResult)
+    await dispatch(saveNoteAsync({ path: fullPath, content: content, sha: sha }))
+      .then(unwrapResult).then(() => navigate(`/?path=${encodeURIComponent(dirPath)}`))
       .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
-    navigate("/?path=" + encodeURIComponent(dirPath));
   }
 
   return (

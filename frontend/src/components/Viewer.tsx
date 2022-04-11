@@ -47,8 +47,8 @@ const Viewer: React.FC = (): ReactElement => {
   const handleDelete = () => {
     confirmDeleteNote(showModal, () => {
       dispatch(deleteNoteAsync(note as TreeNode)).then(unwrapResult)
+        .then(() => navigate(`/?path=${encodeURIComponent(dirPathArray.join('/'))}`))
         .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
-      navigate(`/?path=${encodeURIComponent(dirPathArray.join('/'))}`);
     });
   }
 
