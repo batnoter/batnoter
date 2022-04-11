@@ -10,6 +10,7 @@ import React, { ReactElement } from 'react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
 import { autoSetupRepoAsync, selectPreferenceAPIStatus } from '../reducer/preferenceSlice';
+import { getUserProfileAsync } from '../reducer/userSlice';
 import { getSanitizedErrorMessage } from '../util/util';
 import RepoSelectDialog from './RepoSelectDialog';
 
@@ -44,6 +45,7 @@ const RepoSetupDialog: React.FC<Props> = ({ open, setOpen }): ReactElement => {
   const handleAutoSetupRepo = async () => {
     await dispatch(autoSetupRepoAsync(autoSetupRepoName)).then(unwrapResult)
       .catch(err => setErrorMessage(getSanitizedErrorMessage(err)));
+    await dispatch(getUserProfileAsync());
     setOpen && setOpen(false);
   }
 
