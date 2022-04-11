@@ -88,5 +88,5 @@ export const preferenceSlice = createSlice({
 })
 
 export const selectUserRepos = (state: RootState): Repo[] => state.preference.userRepos;
-export const selectPreferenceStatus = (state: RootState): APIStatus => state.preference.status;
+export const selectPreferenceAPIStatus = (state: RootState): APIStatus => state.preference.status;
 export default preferenceSlice.reducer;

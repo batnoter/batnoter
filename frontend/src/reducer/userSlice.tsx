@@ -65,5 +65,5 @@ export const userSlice = createSlice({
 
 export const { userLoading, userLogout } = userSlice.actions;
 export const selectUser = (state: RootState): User | null => state.user.value;
-export const selectUserStatus = (state: RootState): APIStatusType => state.user.status;
+export const selectUserAPIStatus = (state: RootState): APIStatusType => state.user.status;
 export default userSlice.reducer;

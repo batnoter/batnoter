@@ -10,7 +10,7 @@ import React, { ReactElement, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { APIStatus, APIStatusType } from '../reducer/common';
-import { deleteNoteAsync, getNoteAsync, resetStatus, selectNoteStatus, selectNotesTree, TreeNode } from "../reducer/noteSlice";
+import { deleteNoteAsync, getNoteAsync, resetStatus, selectNoteAPIStatus, selectNotesTree, TreeNode } from "../reducer/noteSlice";
 import TreeUtil from '../util/TreeUtil';
 import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from "../util/util";
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
@@ -39,7 +39,7 @@ const Viewer: React.FC = (): ReactElement => {
   const [searchParams] = useSearchParams();
   const path = getDecodedPath(searchParams.get('path'));
   const tree = useAppSelector(selectNotesTree);
-  const apiStatus = useAppSelector(selectNoteStatus);
+  const apiStatus = useAppSelector(selectNoteAPIStatus);
   const [errorMessage, setErrorMessage] = React.useState("");
   const dirPathArray = splitPath(path);
   const title = getTitleFromFilename(dirPathArray.pop() || '');

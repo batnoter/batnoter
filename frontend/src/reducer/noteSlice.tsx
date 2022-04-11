@@ -223,5 +223,5 @@ export const { resetStatus } = noteSlice.actions;
 export const selectCurrentNote = (state: RootState): NoteResponsePayload | null => state.notes.current;
 export const selectNotesPage = (state: RootState): NotePage => state.notes.page;
 export const selectNotesTree = (state: RootState): TreeNode => state.notes.tree;
-export const selectNoteStatus = (state: RootState): APIStatus => state.notes.status;
+export const selectNoteAPIStatus = (state: RootState): APIStatus => state.notes.status;
 export default noteSlice.reducer;
