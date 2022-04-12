@@ -77,7 +77,21 @@ func (s *service) GetUser(ctx context.Context, ghToken oauth2.Token) (github.Use
 		return github.User{}, errors.Wrap(err, "retrieving user from github failed")
 	}
 	if githubUser.Email == nil {
-		return github.User{}, errors.New("processing github user object failed")
+		// User may not have public visibility for email, lets try fetching it separately
+		opts := github.ListOptions{Page: 1, PerPage: 1000}
+		emails, _, err := client.Users.ListEmails(ctx, &opts)
+		if err != nil {
+			return github.User{}, errors.Wrap(err, "retrieving user email from github failed")
+		}
+		for _, email := range emails {
+			if email != nil && *email.Primary {
+				githubUser.Email = email.Email
+				break
+			}
+		}
+		if githubUser.Email == nil {
+			return github.User{}, errors.New("retrieving user's primary email from github failed")
+		}
 	}
 	return *githubUser, nil
 }

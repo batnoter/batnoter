@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -135,6 +136,66 @@ func TestGetUser(t *testing.T) {
 		userJSON, _ := json.Marshal(u)
 		assert.NoError(t, err)
 		assert.JSONEq(t, `{"avatar_url":"https://github.com/images/error/octocat_happy.gif", "email":"john.doe@example.com", "id":1234, "location":"San Francisco", "login":"johndoe", "name":"John Doe"}`, string(userJSON))
+	})
+
+	t.Run("should return user with primary email when user's email is not publically visible", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		mockClientBuilder := NewMockClientBuilder(ctrl)
+		service := NewService(mockClientBuilder)
+
+		gin.SetMode(gin.TestMode)
+		router := gin.Default()
+		// to get the details of github response structure
+		// refer - https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+		userRespJSON := `{
+			"id": 1234,
+			"login": "johndoe",
+			"name": "John Doe",
+			"location": "San Francisco",
+			"avatar_url": "https://github.com/images/error/octocat_happy.gif"
+		}`
+		router.GET("/user", func(c *gin.Context) {
+			c.Data(200, "application/json; charset=utf-8", []byte(userRespJSON))
+		})
+
+		const primailEmail = "john.doe@example.com"
+		// to get the details of github response structure
+		// refer - https://docs.github.com/en/rest/reference/users#list-email-addresses-for-the-authenticated-user
+		emailsRespJSON := fmt.Sprintf(`[
+			{
+				"email": "%s",
+				"primary": true,
+				"verified": true,
+				"visibility": null
+			},
+			{
+				"email": "alternate.john.doe@example.com",
+				"primary": false,
+				"verified": false,
+				"visibility": "public"
+			},
+			{
+				"email": "another.john.doe@example.com",
+				"primary": false,
+				"verified": true,
+				"visibility": null
+			}
+		]`, primailEmail)
+		router.GET("/user/emails", func(c *gin.Context) {
+			c.Data(200, "application/json; charset=utf-8", []byte(emailsRespJSON))
+		})
+		server := httptest.NewServer(router)
+		defer server.Close()
+		githubClient := github.NewClient(nil)
+		url, _ := url.Parse(server.URL + "/")
+		githubClient.BaseURL = url
+		mockClientBuilder.EXPECT().Build(gomock.Any(), gomock.Any()).Return(githubClient)
+
+		u, err := service.GetUser(context.Background(), oauth2.Token{})
+		userJSON, _ := json.Marshal(u)
+		assert.NoError(t, err)
+		assert.JSONEq(t, fmt.Sprintf(`{"avatar_url":"https://github.com/images/error/octocat_happy.gif", "email":"%s", "id":1234, "location":"San Francisco", "login":"johndoe", "name":"John Doe"}`, primailEmail), string(userJSON))
 	})
 
 	t.Run("should return error when processing user info fails(blank email)", func(t *testing.T) {
