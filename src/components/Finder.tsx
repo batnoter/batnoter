@@ -1,5 +1,5 @@
 import { Masonry } from '@mui/lab';
-import { Alert, CircularProgress, Container } from '@mui/material';
+import { Alert, CircularProgress, Container, Link } from '@mui/material';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useModal } from 'mui-modal-provider';
 import React, { ReactElement, useEffect } from 'react';
@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
 import { deleteNoteAsync, getNotesAsync, resetStatus, selectNoteAPIStatus, selectNotesTree, TreeNode } from '../reducer/noteSlice';
 import TreeUtil from '../util/TreeUtil';
-import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage } from '../util/util';
+import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage, URL_ISSUES } from '../util/util';
 import NoteCard from './NoteCard';
 
 const isGetNotesLoading = (apiStatus: APIStatus): boolean => {
@@ -64,7 +64,7 @@ const Finder = (): ReactElement => {
 
   return (
     <Container>
-      {isGetNotesFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage}</Alert>}
+      {isGetNotesFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage} <span>please try again or <Link href={URL_ISSUES} target="_blank" rel="noopener">create an issue</Link></span></Alert>}
 
       <Masonry columns={{ xs: 1, md: 3, xl: 4 }} spacing={2}>
         {isGetNotesLoading(apiStatus) ? <CircularProgress sx={{ position: "relative", top: "50%", left: "50%" }} /> :
