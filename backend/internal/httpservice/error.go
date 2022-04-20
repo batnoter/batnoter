@@ -71,7 +71,7 @@ func abortRequestWithError(c *gin.Context, err error) {
 		logrus.WithField("error_message", err.Error()).Error("request failed due to internal server error")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
 			Code:    ErrorCodeInternalServerError,
-			Message: "something went wrong. contact support",
+			Message: "something went wrong.",
 		})
 	}
 }

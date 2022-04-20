@@ -36,7 +36,7 @@ const (
 	searchQuery           = "birthday"
 	pageNumber            = 2
 	token                 = "token"
-	internalServerErrJSON = `{"code":"internal_server_error", "message":"something went wrong. contact support"}`
+	internalServerErrJSON = `{"code":"internal_server_error", "message":"something went wrong."}`
 )
 
 func TestSearchNotes(t *testing.T) {
