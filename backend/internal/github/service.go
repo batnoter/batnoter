@@ -19,7 +19,7 @@ type Service interface {
 	GetUser(ctx context.Context, ghToken oauth2.Token) (github.User, error)
 
 	GetRepos(ctx context.Context, ghToken oauth2.Token) ([]GitRepo, error)
-	CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) error
+	CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) (GitRepo, error)
 	SearchFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps, query string, pageNo int) ([]GitFile, int, error)
 	GetTree(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error)
 	GetAllFiles(ctx context.Context, ghToken oauth2.Token, fileProps GitFileProps) ([]GitFile, error)
@@ -120,7 +120,7 @@ func (s *service) GetRepos(ctx context.Context, ghToken oauth2.Token) ([]GitRepo
 
 // CreateRepo creates a new github repository using github oauth2 token and repo properties.
 // It returns any error occurred while creating new repo on github.
-func (s *service) CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) error {
+func (s *service) CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) (GitRepo, error) {
 	client := s.clientBuilder.Build(ctx, &ghToken)
 	private := true
 	autoInit := true
@@ -129,11 +129,15 @@ func (s *service) CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName
 		Private:  &private,
 		AutoInit: &autoInit,
 	}
-	_, _, err := client.Repositories.Create(ctx, "", opts)
+	gitRepo, _, err := client.Repositories.Create(ctx, "", opts)
 	if err != nil {
-		return errors.Wrap(err, "creating new repo on github failed")
+		return GitRepo{}, errors.Wrap(err, "creating new repo on github failed")
 	}
-	return nil
+	return GitRepo{
+		Name:          gitRepo.GetName(),
+		Visibility:    gitRepo.GetVisibility(),
+		DefaultBranch: gitRepo.GetDefaultBranch(),
+	}, nil
 }
 
 // SearchFiles fetches the files from github using github oauth2 token and filtering criteria.

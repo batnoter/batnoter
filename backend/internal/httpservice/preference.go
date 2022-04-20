@@ -24,7 +24,6 @@ func (r RepoPayload) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name, validation.Required, validation.Length(1, 50)),
 		validation.Field(&r.Visibility, validation.Required, validation.Length(1, 20)),
-		validation.Field(&r.Visibility, validation.Length(0, 50)),
 	)
 }
 
@@ -127,7 +126,7 @@ func (p *PreferenceHandler) AutoSetupRepo(c *gin.Context) {
 	}
 
 	logrus.WithField("user-id", user.ID).Infof("request to auto setup default repo")
-	err = p.githubService.CreateRepo(c, parseOAuth2Token(user.GithubToken), repoName)
+	gitRepo, err := p.githubService.CreateRepo(c, parseOAuth2Token(user.GithubToken), repoName)
 	if err != nil {
 		logrus.Errorf("creating a new notes repo in github failed")
 		abortRequestWithError(c, err)
@@ -136,9 +135,9 @@ func (p *PreferenceHandler) AutoSetupRepo(c *gin.Context) {
 
 	defaultRepo := preference.DefaultRepo{
 		UserID:        user.ID,
-		Name:          repoName,
-		Visibility:    "private",
-		DefaultBranch: "main",
+		Name:          gitRepo.Name,
+		Visibility:    gitRepo.Visibility,
+		DefaultBranch: gitRepo.DefaultBranch,
 	}
 
 	if err := p.preferenceService.Save(defaultRepo); err != nil {

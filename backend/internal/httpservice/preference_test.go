@@ -244,7 +244,11 @@ func TestAutoSetupRepo(t *testing.T) {
 			DefaultBranch: branch,
 		}
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
-		mockGithubService.EXPECT().CreateRepo(gomock.Any(), gomock.Any(), repository).Return(nil)
+		mockGithubService.EXPECT().CreateRepo(gomock.Any(), gomock.Any(), repository).Return(github.GitRepo{
+			Name:          repository,
+			Visibility:    visibility,
+			DefaultBranch: branch,
+		}, nil)
 		mockPreferenceService.EXPECT().Save(dbDefaultRepo).Return(nil)
 		handler := NewPreferenceHandler(mockPreferenceService, mockGithubService, mockUserService)
 
@@ -285,7 +289,7 @@ func TestAutoSetupRepo(t *testing.T) {
 		router := getRouter()
 		u := validUser()
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
-		mockGithubService.EXPECT().CreateRepo(gomock.Any(), gomock.Any(), repository).Return(errors.New("some error"))
+		mockGithubService.EXPECT().CreateRepo(gomock.Any(), gomock.Any(), repository).Return(github.GitRepo{}, errors.New("some error"))
 		handler := NewPreferenceHandler(mockPreferenceService, mockGithubService, mockUserService)
 
 		router.POST("/api/v1/user/preference/repo/auto", getClaimsHandler(), handler.AutoSetupRepo)
@@ -313,7 +317,11 @@ func TestAutoSetupRepo(t *testing.T) {
 			DefaultBranch: branch,
 		}
 		mockUserService.EXPECT().Get(userID).Return(u, nil)
-		mockGithubService.EXPECT().CreateRepo(gomock.Any(), gomock.Any(), repository).Return(nil)
+		mockGithubService.EXPECT().CreateRepo(gomock.Any(), gomock.Any(), repository).Return(github.GitRepo{
+			Name:          repository,
+			Visibility:    visibility,
+			DefaultBranch: branch,
+		}, nil)
 		mockPreferenceService.EXPECT().Save(dbDefaultRepo).Return(errors.New(("some error")))
 		handler := NewPreferenceHandler(mockPreferenceService, mockGithubService, mockUserService)
 

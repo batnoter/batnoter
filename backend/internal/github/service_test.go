@@ -328,7 +328,9 @@ func TestCreateRepo(t *testing.T) {
 				"id": 1,
 				"type": "User"
 			},
+			"default_branch": "main",
 			"private": true,
+			"visibility": "public",
 			"html_url": "https://github.com/johndoe/notes"
 		}`
 		router.POST("/user/repos", func(c *gin.Context) {
@@ -339,8 +341,10 @@ func TestCreateRepo(t *testing.T) {
 		githubClient.BaseURL = url
 		mockClientBuilder.EXPECT().Build(gomock.Any(), gomock.Any()).Return(githubClient)
 
-		err := service.CreateRepo(context.Background(), oauth2.Token{}, "notes")
+		gitRepo, err := service.CreateRepo(context.Background(), oauth2.Token{}, "notes")
+		gitRepoJSON, _ := json.Marshal(gitRepo)
 		assert.NoError(t, err)
+		assert.JSONEq(t, `{"DefaultBranch":"main", "Name":"notes", "Visibility":"public"}`, string(gitRepoJSON))
 	})
 
 	t.Run("should return error when repo creation fails", func(t *testing.T) {
@@ -356,7 +360,7 @@ func TestCreateRepo(t *testing.T) {
 		githubClient.BaseURL = url
 		mockClientBuilder.EXPECT().Build(gomock.Any(), gomock.Any()).Return(githubClient)
 
-		err := service.CreateRepo(context.Background(), oauth2.Token{}, "notes")
+		_, err := service.CreateRepo(context.Background(), oauth2.Token{}, "notes")
 		assert.Error(t, err)
 	})
 }
