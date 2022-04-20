@@ -224,11 +224,15 @@ func (n *NoteHandler) getUser(c *gin.Context) (user.User, error) {
 }
 
 func makeFileProps(user user.User, noteReqPayload NoteRequestPayload, path string) github.GitFileProps {
+	authorName := user.Name
+	if authorName == "" {
+		authorName = user.GithubUsername
+	}
 	return github.GitFileProps{
 		SHA:         noteReqPayload.SHA,
 		Content:     noteReqPayload.Content,
 		Path:        path,
-		AuthorName:  user.Name,
+		AuthorName:  authorName,
 		AuthorEmail: user.Email,
 		RepoDetails: github.GitRepoProps{
 			Repository:    user.DefaultRepo.Name,
