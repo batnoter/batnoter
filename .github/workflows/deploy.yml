@@ -1,14 +1,72 @@
-name: Deployment
+name: Deploy
 
 on:
-  workflow_run:
-    workflows: [Build]
-    branches: [main]
-    types: [completed]
+  push:
+    branches:
+      - main
 
 jobs:
-  deployment:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: setup go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.17
+
+    - name: login to github docker registry
+      uses: docker/login-action@v1.14.1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: publish backend docker image to registry
+      env:
+        COMMIT_SHA: ${{ github.sha }}
+        REPO_REGISTRY: ghcr.io/${{ github.repository }}
+      run: |
+        docker build \
+          -t $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-backend:${GITHUB_REF##*/} \
+          -t $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-backend:$COMMIT_SHA \
+          -t $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-backend:latest .
+        docker push -a $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-backend
+      working-directory: ./backend
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: setup node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 16.x
+
+    - name: login to github docker registry
+      uses: docker/login-action@v1.14.1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: publish frontend docker image to registry
+      env:
+        COMMIT_SHA: ${{ github.sha }}
+        REPO_REGISTRY: ghcr.io/${{ github.repository }}
+      run: |
+        docker build \
+          -t $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-frontend:${GITHUB_REF##*/} \
+          -t $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-frontend:$COMMIT_SHA \
+          -t $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-frontend:latest .
+        docker push -a $REPO_REGISTRY/${GITHUB_REPOSITORY#*/}-frontend
+      working-directory: ./frontend
+
+  deploy:
+    needs: [build-backend, build-frontend]
     runs-on: ubuntu-latest
     environment: 
       name: Production
