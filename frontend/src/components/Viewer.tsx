@@ -12,7 +12,7 @@ import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { APIStatus, APIStatusType } from '../reducer/common';
 import { deleteNoteAsync, getNoteAsync, resetStatus, selectNoteAPIStatus, selectNotesTree, TreeNode } from "../reducer/noteSlice";
 import TreeUtil from '../util/TreeUtil';
-import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from "../util/util";
+import { confirmDeleteNote, getDecodedPath, getSanitizedErrorMessage, getTitleFromFilename, splitPath, URL_ISSUES } from "../util/util";
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
 const isLoading = (apiStatus: APIStatus): boolean => {
@@ -85,7 +85,7 @@ const Viewer: React.FC = (): ReactElement => {
           </Box>
         </Grid>
         <Divider sx={{ my: 3 }} />
-        {isFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage}</Alert>}
+        {isFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage} <span>please try again or <Link href={URL_ISSUES} target="_blank" rel="noopener">create an issue</Link></span></Alert>}
         <Box className='viewer-markdown' sx={{ background: 'white', p: 2 }}>
           <CustomReactMarkdown className='custom-html-style'>{note?.content || ''}</CustomReactMarkdown>
         </Box>
