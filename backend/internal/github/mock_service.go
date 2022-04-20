@@ -37,11 +37,12 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CreateRepo mocks base method.
-func (m *MockService) CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) error {
+func (m *MockService) CreateRepo(ctx context.Context, ghToken oauth2.Token, repoName string) (GitRepo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRepo", ctx, ghToken, repoName)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(GitRepo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateRepo indicates an expected call of CreateRepo.
