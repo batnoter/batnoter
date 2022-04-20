@@ -1,6 +1,7 @@
-name: Test - Pull Request
+name: Test
 
 on:
+  push:
   pull_request:
     types: [opened, synchronize, reopened]
     # Note: GitHub does not pass secrets(for security reasons) to PR workflows created with forked repos
@@ -13,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
 
     - name: setup go
       uses: actions/setup-go@v2

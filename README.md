@@ -12,7 +12,7 @@
 
 ## GitNoter
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vivekweb2013/gitnoter/Build/main?color=forestgreen)](https://github.com/vivekweb2013/gitnoter/actions?query=branch%3Amain)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vivekweb2013/gitnoter/Test/main?color=forestgreen)](https://github.com/vivekweb2013/gitnoter/actions?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/vivekweb2013/gitnoter/branch/main/graph/badge.svg?token=P40BDKYDBI)](https://codecov.io/gh/vivekweb2013/gitnoter)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/dca601a2e8dd40e682ed260eca85a5ab)](https://www.codacy.com/gh/vivekweb2013/gitnoter/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=vivekweb2013/gitnoter&amp;utm_campaign=Badge_Grade)
 
