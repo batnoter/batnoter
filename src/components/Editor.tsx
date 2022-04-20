@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
 import { getNoteAsync, resetStatus, saveNoteAsync, selectNoteAPIStatus, selectNotesTree } from '../reducer/noteSlice';
 import TreeUtil from '../util/TreeUtil';
-import { appendPath, getDecodedPath, getFilenameFromTitle, getSanitizedErrorMessage, getTitleFromFilename, splitPath } from '../util/util';
+import { appendPath, getDecodedPath, getFilenameFromTitle, getSanitizedErrorMessage, getTitleFromFilename, splitPath, URL_ISSUES } from '../util/util';
 import CustomReactMarkdown from './lib/CustomReactMarkdown';
 
 const VALID_DIR_PATH_REGEX = /^((?!\/)([a-zA-Z0-9-]([/]|[^\S\r\n])?)*)([a-zA-Z0-9-])$/gm;
@@ -138,7 +138,10 @@ const Editor: React.FC = (): ReactElement => {
     <Container maxWidth="md">
       {isGetNoteLoading(apiStatus) ? <CircularProgress sx={{ position: "relative", top: "50%", left: "50%" }} /> :
         <form noValidate autoComplete="off" onSubmit={handleSubmit}>
-          {isFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%" }}>{errorMessage}</Alert>}
+          {isFailed(apiStatus) && errorMessage &&
+            <Alert severity="error" sx={{ width: "100%" }}>
+              {errorMessage} <span>please try again or <Link href={URL_ISSUES} target="_blank" rel="noopener">create an issue</Link></span>
+            </Alert>}
           <Autocomplete freeSolo fullWidth multiple openOnFocus value={dirPathArray} options={pathAutoCompleteOptions}
             disabled={editMode}
             onChange={(e, newPath) => {

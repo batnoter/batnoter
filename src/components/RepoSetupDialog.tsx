@@ -1,4 +1,4 @@
-import { Alert, Typography } from '@mui/material';
+import { Alert, Link, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
 import { autoSetupRepoAsync, selectPreferenceAPIStatus } from '../reducer/preferenceSlice';
 import { getUserProfileAsync } from '../reducer/userSlice';
-import { getSanitizedErrorMessage } from '../util/util';
+import { getSanitizedErrorMessage, URL_ISSUES } from '../util/util';
 import RepoSelectDialog from './RepoSelectDialog';
 
 interface Props {
@@ -54,7 +54,7 @@ const RepoSetupDialog: React.FC<Props> = ({ open, setOpen }): ReactElement => {
       <DialogTitle>Setup Notes Repository</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-          {isFailed(apiStatus) && <Alert severity="error" sx={{ width: "100%" }}>{errorMessage}</Alert>}
+          {isFailed(apiStatus) && <Alert severity="error" sx={{ width: "100%" }}>{errorMessage} <span>please try again or <Link href={URL_ISSUES} target="_blank" rel="noopener">create an issue</Link></span></Alert>}
           <Typography gutterBottom paragraph>
             You may choose to automatically setup your notes repository or manually select an existing repository for storing notes.
             The automatic setup will create a new private repository &quot;{autoSetupRepoName}&quot; and set it as your notes repository.

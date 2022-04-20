@@ -10,6 +10,7 @@ import React, { ReactElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import { APIStatusType } from '../reducer/common';
 import { User } from '../reducer/userSlice';
+import { URL_FAQ, URL_ISSUES, URL_TWITTER_HANDLE } from '../util/util';
 
 interface Props {
   user: User | null
@@ -18,10 +19,7 @@ interface Props {
   handleLogout: () => void
 }
 
-const URL_REPO = "https://github.com/vivekweb2013/batnoter"
-const URL_FAQ = `${URL_REPO}/wiki/FAQ`
-const URL_ISSUES = `${URL_REPO}/issues`
-const URL_TWITTER_HANDLE = "https://twitter.com/batnoter";
+
 
 const getExternalLink = (url: string, label: string, Icon: OverridableComponent<SvgIconTypeMap>): ReactElement => {
   return <Link href={url} sx={{ mx: 1, color: 'inherit' }} target="_blank" rel="noopener">
