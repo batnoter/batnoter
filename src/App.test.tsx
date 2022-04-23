@@ -11,5 +11,5 @@ test('renders login react link', () => {
     </Provider>
   );
 
-  expect(getByText(/GIT NOTER/i)).toBeInTheDocument();
+  expect(getByText(/BATNOTER/)).toBeInTheDocument();
 });

@@ -45,9 +45,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar variant="dense" sx={{ justifyContent: "space-between" }}>
-        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: "flex" }}>
-          GIT NOTER
-        </Typography>
+        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: "flex" }}>BATNOTER</Typography>
         {getExternalLink(URL_TWITTER_HANDLE, "@batnoter", TwitterIcon)}
         {getExternalLink(URL_FAQ, "faq", HelpCircle)}
         {getExternalLink(URL_ISSUES, "bug report", BugReportIcon)}
