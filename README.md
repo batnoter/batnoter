@@ -10,7 +10,17 @@ npm run build
 ```
 
 ### Running the frontend module locally
-The following command is used to run this frontend module.
+
+Before starting the frontend app, please make sure that you have either started the backend module locally or pointed the frontend to staging api-server using proxy configuration.
+
+If you are working only on the frontend changes and do not want to start the backend module locally, you can point the frontend app to staging server for API access.
+
+To point frontend app to the staging api-server, Simply create `.env.development.local` file at the root of the frontend module with below contents.
+```shell
+REACT_APP_PROXY_API_URL=https://batnoter-staging.herokuapp.com
+```
+
+Then start the frontend react app with below command.
 ```shell
 npm start
 ```
