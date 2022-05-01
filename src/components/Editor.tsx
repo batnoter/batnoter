@@ -20,7 +20,7 @@ const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
 const StyledMDEditor = styled(MDEditor)(
   ({ theme }: { theme: Theme }) => `
   margin: 16px 0;
-  height: 275px;
+  height: 375px;
   border-color: rgba(0, 0, 0, 0.23);
   border-radius: ${theme.shape.borderRadius}px;
   & > .rc-md-navigation {
@@ -135,7 +135,7 @@ const Editor: React.FC = (): ReactElement => {
   }
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="lg">
       {isGetNoteLoading(apiStatus) ? <CircularProgress sx={{ position: "relative", top: "50%", left: "50%" }} /> :
         <form noValidate autoComplete="off" onSubmit={handleSubmit}>
           {isFailed(apiStatus) && errorMessage &&
