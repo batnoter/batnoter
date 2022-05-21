@@ -38,3 +38,8 @@
 > Every Contribution Makes a Difference
 
 Read the [Contribution Guidelines](CONTRIBUTING.md) before you contribute.
+
+### Contributors
+Thanks goes to these wonderful people 🎉
+
+[![](https://opencollective.com/gitnoter/contributors.svg?width=890&button=false)](https://github.com/vivekweb2013/gitnoter/graphs/contributors)
