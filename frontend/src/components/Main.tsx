@@ -17,7 +17,7 @@ import Login from './Login';
 import RepoSetupDialog from './RepoSetupDialog';
 import Settings from './Settings';
 import Viewer from './Viewer';
-
+import ErrorPage from "./404"
 const DrawerLayout: React.FC<{ user: User | null }> = ({ user }): ReactElement => {
   return (
     <Box sx={{ display: 'flex', flexGrow: 1 }}>
@@ -82,6 +82,7 @@ const Main: React.FC = (): ReactElement => {
               <Route path="/view" element={<RequireAuth user={user}><Viewer key={'view'} /></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth user={user}><Settings user={user} /></RequireAuth>} />
             </Route>
+            <Route path="*" element={<ErrorPage />} />
           </Routes>
       }
     </>
