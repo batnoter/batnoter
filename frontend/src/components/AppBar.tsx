@@ -7,7 +7,7 @@ import AppBarComponent from '@mui/material/AppBar';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { HelpCircle } from 'mdi-material-ui';
 import React, { ReactElement } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink} from 'react-router-dom';
 import { APIStatusType } from '../reducer/common';
 import { User } from '../reducer/userSlice';
 import { URL_FAQ, URL_ISSUES, URL_TWITTER_HANDLE } from '../util/util';
@@ -18,7 +18,6 @@ interface Props {
   handleLogin: () => void
   handleLogout: () => void
 }
-
 
 
 const getExternalLink = (url: string, label: string, Icon: OverridableComponent<SvgIconTypeMap>): ReactElement => {
@@ -45,7 +44,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar variant="dense" sx={{ justifyContent: "space-between" }}>
-        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: "flex" }}>GITNOTER</Typography>
+        <Link variant="h6" noWrap component={NavLink} to={"/"} sx={{ flexGrow: 1, display: "flex", color: 'inherit' }}>GITNOTER</Link>
         {getExternalLink(URL_TWITTER_HANDLE, "@gitnoter", TwitterIcon)}
         {getExternalLink(URL_FAQ, "faq", HelpCircle)}
         {getExternalLink(URL_ISSUES, "bug report", BugReportIcon)}
