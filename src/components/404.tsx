@@ -29,6 +29,7 @@ const ErrorPage: React.FC = (): React.ReactElement => {
         <Button
           variant="contained"
           sx={{ mt: 2, width: "20em", alignSelf: "left" }}
+          onClick={handleClick}
         >
           Go back to Home
         </Button>
@@ -39,7 +40,6 @@ const ErrorPage: React.FC = (): React.ReactElement => {
         md={7}
         lg={7}
         sx={{ display: "grid", placeContent: "center" }}
-        onClick={handleClick}
       >
         <img
           src={ErrorImage}

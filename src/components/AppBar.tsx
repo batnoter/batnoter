@@ -2,7 +2,7 @@ import { Login as LoginIcon } from '@mui/icons-material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import TwitterIcon from '@mui/icons-material/Twitter';
-import { Avatar, Button, CircularProgress, Link, Menu, MenuItem, SvgIconTypeMap, Toolbar, Typography } from '@mui/material';
+import { Avatar, Button, CircularProgress, Link, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { HelpCircle } from 'mdi-material-ui';
@@ -18,7 +18,6 @@ interface Props {
   handleLogin: () => void
   handleLogout: () => void
 }
-
 
 
 const getExternalLink = (url: string, label: string, Icon: OverridableComponent<SvgIconTypeMap>): ReactElement => {
@@ -45,7 +44,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar variant="dense" sx={{ justifyContent: "space-between" }}>
-        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, display: "flex" }}>BATNOTER</Typography>
+        <Link variant="h6" noWrap component={NavLink} to={"/"} sx={{ flexGrow: 1, display: "flex", color: 'inherit' }}>BATNOTER</Link>
         {getExternalLink(URL_TWITTER_HANDLE, "@batnoter", TwitterIcon)}
         {getExternalLink(URL_FAQ, "faq", HelpCircle)}
         {getExternalLink(URL_ISSUES, "bug report", BugReportIcon)}
