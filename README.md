@@ -1,58 +1,63 @@
-## BatNoter Frontend Module
-This is the frontend module of batnoter application.
+<p align="center">
+  <a href="https://batnoter.com">
+    <img src="https://raw.githubusercontent.com/batnoter/batnoter/main/public/logo.svg" width="100">
+  </a>
 
-### Build the frontend module
+  <p align="center">
+    Create and store notes to your git repository!
+    <br>
+    <a href="https://batnoter.com"><strong>https://batnoter.com</strong></a>
+  </p>
+</p>
 
-The following commands are used to build this frontend module.
+## BatNoter
+
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/batnoter/batnoter/Test/main?color=forestgreen)](https://github.com/batnoter/batnoter/actions?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/batnoter/batnoter/branch/main/graph/badge.svg?token=P40BDKYDBI)](https://codecov.io/gh/batnoter/batnoter)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/824dc3f42ddf48f0b99194ea0ef975a7)](https://www.codacy.com/gh/batnoter/batnoter/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=batnoter/batnoter&amp;utm_campaign=Badge_Grade)
+
+[BatNoter](https://batnoter.com) is a web application that allows users to store notes in their git repository. This is a frontend project built using mainly react (typescript), redux-toolkit & mui components. [BatNoter API](https://github.com/batnoter/batnoter-api) is the backend implementation of REST APIs which are used by this react app.
+
+<p align="center">
+  <kbd><img src="https://raw.githubusercontent.com/batnoter/batnoter/main/demo.gif" alt="BatNoter Demo"/></kbd>
+</p>
+
+### Features
+-   Login with GitHub.
+-   Create, edit, delete, organize & explore notes easily with a nice & clean user interface.
+-   Markdown format supported allowing users to add hyperlink, table, headings, code blocks, blockquote... etc inside notes.
+-   Editor allows preview of markdown.
+-   Quickly copy code from the code section using copy to clipboard button.
+-   Store notes directly at the root or use folders to organize them (nesting supported).
+-   Explore all the notes from a specific directory with single click.
+-   All the notes are stored inside user's github repository.
+-   Notes are cached to avoid additional API calls.
+-   URLs can be bookmarked.
+
+### Local Development Setup
+
+#### Prerequisites
+*   Node.js version `18` or above
+
+#### Start the server
 ```shell
 npm install
-npm run build
-```
-
-### Running the frontend module locally
-
-Before starting the frontend app, please make sure that you have either started the backend module locally or pointed the frontend to staging api-server using proxy configuration.
-
-If you are working only on the frontend changes and do not want to start the backend module locally, you can point the frontend app to staging server for API access.
-
-To point frontend app to the staging api-server, Simply create `.env.development.local` file at the root of the frontend module with below contents.
-```shell
-REACT_APP_PROXY_API_URL=https://batnoter-staging.herokuapp.com
-```
-
-Then start the frontend react app with below command.
-```shell
 npm start
 ```
-This will start the react app in the development mode.
+This will start the react app in the development mode. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-### Analyzing the bundle size
-Source map explorer analyzes JavaScript bundles using the source maps. This helps you understand where code bloat is coming from.
-
-Run below command to generate the report.
+#### Run tests
 ```shell
-npm run analyze
+npm test
 ```
+This will execute all the tests and also prints the code coverage percentage.
 
-### Create production build
-```shell
-npm run build
-```
+### Contribution Guidelines
+> Every Contribution Makes a Difference
 
-This will create the production build of application in the `build` folder.
-It correctly bundles application in production mode and optimizes the build for the best performance.
+Read the [Contribution Guidelines](CONTRIBUTING.md) before you contribute.
 
-### Run the production build of frontend module
-When you do `npm start` the app is started in development mode.
+### Contributors
+Thanks goes to these wonderful people 🎉
 
-If you have built the app and you want to run the app in production mode (i.e.from build directory), 
-Install `serve` and start the app using below commands
-```shell
-npm install serve -g
-npm run build
-serve -s build
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+[![](https://opencollective.com/batnoter/contributors.svg?width=890&button=false)](https://github.com/batnoter/batnoter/graphs/contributors)
