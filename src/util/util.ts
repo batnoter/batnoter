@@ -2,7 +2,7 @@ import { SerializedError } from "@reduxjs/toolkit";
 import { ShowFn } from "mui-modal-provider/dist/types";
 import ConfirmDialog from "../components/ConfirmDialog";
 
-export const URL_REPO = "https://github.com/vivekweb2013/batnoter"
+export const URL_REPO = "https://github.com/batnoter/batnoter"
 export const URL_FAQ = `${URL_REPO}/wiki/FAQ`
 export const URL_ISSUES = `${URL_REPO}/issues`
 export const URL_TWITTER_HANDLE = "https://twitter.com/batnoter";
