@@ -2,7 +2,7 @@ import { NotePage, NoteResponsePayload } from "../reducer/noteSlice";
 import { Repo } from "../reducer/preferenceSlice";
 import { User } from "../reducer/userSlice";
 
-const API_URL = "/api/v1";
+export const API_URL = (process.env.REACT_APP_API_SERVER || "") + "/api/v1";
 
 const getHeaders = (): HeadersInit => {
   const headers: HeadersInit = new Headers();
@@ -10,6 +10,16 @@ const getHeaders = (): HeadersInit => {
   headers.set("Authorization", "Bearer " + localStorage.getItem("token"));
   headers.set("Content-Type", "application/json");
   return headers;
+}
+
+export const getToken = (): Promise<undefined> => {
+  return fetch(`${API_URL}/auth/token`, { credentials: 'include' }).then(async (res) => {
+    if (!res.ok) {
+      return Promise.reject("retrieving token failed");
+    }
+    const token = await res.text();
+    localStorage.setItem("token", token);
+  })
 }
 
 export const getUserProfile = (): Promise<User> => {
