@@ -9,7 +9,7 @@ import Main from './components/Main';
 const App: React.FC = () => {
   return (
     <div className="App">
-      <BrowserRouter>
+      <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
         <ThemeProvider theme={createTheme()}>
           <ModalProvider>
             <Box sx={{ display: 'flex' }}>

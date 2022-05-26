@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    # Note: GitHub does not pass secrets(for security reasons) to PR workflows created with forked repos
+    # So do not use any actions that require secrets
+    # Tee GITHUB_TOKEN secret is allowed with readonly access for PR workflows created with forked repos
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: setup node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 16.x
+
+    - name: run tests
+      run: |
+        npm ci
+        npm test -- --env=jsdom --coverage --watchAll=false --reporters=default
+      
+    - name: upload coverage to codecov
+      uses: codecov/codecov-action@v2
