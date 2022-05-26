@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  deploy-production:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: Production
+      url: 'https://batnoter.com'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build react app
+      env:
+        # REACT_APP_BASENAME is the dir where app is deployed. It is used to specify the basename for react router.
+        # it is useful in case you are deploying to github pages & app is served from https://username.github.io/repository
+        # in this case you can simply specify the repository name as the value of this variable.
+        # set this empty if the app is being deployed to the root location.
+        REACT_APP_BASENAME: batnoter
+
+        # REACT_APP_API_SERVER is the url of batnoter api server
+        REACT_APP_API_SERVER: https://batnoter.herokuapp.com
+      run: |
+        npm ci
+        npm run build
+
+        # patch the build to support routing on github pages
+        # since we are deploying the application on github pages and github pages only acts as the static file server,
+        # the page reload action on a custom route will cause 404 failure. reference - https://create-react-app.dev/docs/deployment/#serving-apps-with-client-side-routing
+        # this patch resolves 404 issue on page reload. read more at - https://github.com/rafgraph/spa-github-pages
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><script>var s=!!"'"$REACT_APP_BASENAME"'"?"'"$REACT_APP_BASENAME"'".split("/").length:0,l=window.location;l.replace(l.protocol+"//"+l.hostname+(l.port?":"+l.port:"")+l.pathname.split("/").slice(0,1+s).join("/")+"/?/"+l.pathname.slice(1).split("/").slice(s).join("/").replace(/&/g,"~and~")+(l.search?"&"+l.search.slice(1).replace(/&/g,"~and~"):"")+l.hash);</script></head><body></body></html>' >> ./build/404.html
+        sed -i 's/<\/head>/<script>var a=window.location;if("\/"===a.search[1]){var b=a.search.slice(1).split("\&").map(function(a){return a.replace(\/~and~\/g,"\&")}).join("?");window.history.replaceState(null,null,a.pathname.slice(0,-1)+b+a.hash)}<\/script><\/head>/' ./build/index.html
+
+    - name: deploy to gh-pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
