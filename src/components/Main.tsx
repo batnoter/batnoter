@@ -4,10 +4,12 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { Outlet, Route, Routes } from 'react-router-dom';
+import { API_URL } from '../api/api';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatusType } from '../reducer/common';
 import { getNotesAsync, getNotesTreeAsync } from '../reducer/noteSlice';
 import { getUserProfileAsync, selectUser, selectUserAPIStatus, User, userLoading, userLogout } from '../reducer/userSlice';
+import ErrorPage from "./404";
 import AppBar from './AppBar';
 import AppDrawer from './AppDrawer';
 import Editor from './Editor';
@@ -17,7 +19,6 @@ import Login from './Login';
 import RepoSetupDialog from './RepoSetupDialog';
 import Settings from './Settings';
 import Viewer from './Viewer';
-import ErrorPage from "./404"
 const DrawerLayout: React.FC<{ user: User | null }> = ({ user }): ReactElement => {
   return (
     <Box sx={{ display: 'flex', flexGrow: 1 }}>
@@ -46,7 +47,7 @@ const Main: React.FC = (): ReactElement => {
 
   const handleLogin = () => {
     dispatch(userLoading());
-    window.location.href = "/api/v1/oauth2/login/github";
+    window.location.href = API_URL + "/oauth2/login/github";
   }
 
   const handleLogout = () => {
