@@ -27,10 +27,10 @@ jobs:
         # it is useful in case you are deploying to github pages & app is served from https://username.github.io/repository
         # in this case you can simply specify the repository name as the value of this variable.
         # set this empty if the app is being deployed to the root location.
-        REACT_APP_BASENAME: batnoter
+        REACT_APP_BASENAME:
 
         # REACT_APP_API_SERVER is the url of batnoter api server
-        REACT_APP_API_SERVER: https://batnoter.herokuapp.com
+        REACT_APP_API_SERVER: https://api.batnoter.com
       run: |
         npm ci
         npm run build
@@ -47,3 +47,4 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build
+        cname: batnoter.com
