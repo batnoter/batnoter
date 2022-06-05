@@ -24,7 +24,7 @@ const DrawerLayout: React.FC<{ user: User | null }> = ({ user }): ReactElement =
     <Box sx={{ display: 'flex', flexGrow: 1 }}>
       <AppDrawer user={user} />
       <Box component="main" sx={{
-        backgroundColor: (theme) => theme.palette.grey[100], flexGrow: 1, height: '100vh', overflow: 'auto'
+        flexGrow: 1, height: '100vh', overflow: 'auto'
       }}>
         <Toolbar variant="dense" />
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -71,21 +71,23 @@ const Main: React.FC = (): ReactElement => {
   return (
     <>
       <AppBar userAPIStatus={userAPIStatus} handleLogin={handleLogin} handleLogout={handleLogout} user={user} />
-      {user != null && !user?.default_repo?.name && <RepoSetupDialog open={true}></RepoSetupDialog>}
-      {
-        !apiTriggered || isUserAPILoading(userAPIStatus) ? <CircularProgress color="inherit" sx={{ ml: '50%', mt: 10 }} /> :
-          <Routes>
-            <Route path="/login" element={<Login userAPIStatus={userAPIStatus} handleLogin={handleLogin} user={user} />} />
-            <Route path="/" element={<DrawerLayout user={user} />} >
-              <Route index element={<RequireAuth user={user}><Finder /></RequireAuth>} />
-              <Route path="/new" element={<RequireAuth user={user}><Editor key={'new'} /></RequireAuth>} />
-              <Route path="/edit" element={<RequireAuth user={user}><Editor key={'edit'} /></RequireAuth>} />
-              <Route path="/view" element={<RequireAuth user={user}><Viewer key={'view'} /></RequireAuth>} />
-              <Route path="/settings" element={<RequireAuth user={user}><Settings user={user} /></RequireAuth>} />
-            </Route>
-            <Route path="*" element={<ErrorPage />} />
-          </Routes>
-      }
+      <Container maxWidth="xl">
+        {user != null && !user?.default_repo?.name && <RepoSetupDialog open={true}></RepoSetupDialog>}
+        {
+          !apiTriggered || isUserAPILoading(userAPIStatus) ? <CircularProgress color="inherit" sx={{ ml: '50%', mt: 10 }} /> :
+            <Routes>
+              <Route path="/login" element={<Login userAPIStatus={userAPIStatus} handleLogin={handleLogin} user={user} />} />
+              <Route path="/" element={<DrawerLayout user={user} />} >
+                <Route index element={<RequireAuth user={user}><Finder /></RequireAuth>} />
+                <Route path="/new" element={<RequireAuth user={user}><Editor key={'new'} /></RequireAuth>} />
+                <Route path="/edit" element={<RequireAuth user={user}><Editor key={'edit'} /></RequireAuth>} />
+                <Route path="/view" element={<RequireAuth user={user}><Viewer key={'view'} /></RequireAuth>} />
+                <Route path="/settings" element={<RequireAuth user={user}><Settings user={user} /></RequireAuth>} />
+              </Route>
+              <Route path="*" element={<ErrorPage />} />
+            </Routes>
+        }
+      </Container>
     </>
   );
 }
