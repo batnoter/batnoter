@@ -86,7 +86,7 @@ const Viewer: React.FC = (): ReactElement => {
         </Grid>
         <Divider sx={{ my: 3 }} />
         {isFailed(apiStatus) && errorMessage && <Alert severity="error" sx={{ width: "100%", mb: 2 }}>{errorMessage} <span>please try again or <Link href={URL_ISSUES} target="_blank" rel="noopener">create an issue</Link></span></Alert>}
-        <Box className='viewer-markdown' sx={{ background: 'white', p: 2 }}>
+        <Box className='viewer-markdown' sx={{ p: 2 }}>
           <CustomReactMarkdown className='custom-html-style'>{note?.content || ''}</CustomReactMarkdown>
         </Box>
       </Box>

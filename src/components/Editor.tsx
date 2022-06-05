@@ -17,31 +17,46 @@ import CustomReactMarkdown from './lib/CustomReactMarkdown';
 const VALID_DIR_PATH_REGEX = /^((?!\/)([a-zA-Z0-9-]([/]|[^\S\r\n])?)*)([a-zA-Z0-9-])$/gm;
 const VALID_FILENAME_REGEX = /^([a-zA-Z0-9-]|[^\S\r\n])+(\.md)$/gm;
 
-const StyledMDEditor = styled(MDEditor)(
-  ({ theme }: { theme: Theme }) => `
-  margin: 16px 0;
-  height: 375px;
-  border-color: rgba(0, 0, 0, 0.23);
-  border-radius: ${theme.shape.borderRadius}px;
-  & > .rc-md-navigation {
-    min-height: 56px;
-    border-radius: ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0;
-
-    .button-wrap {
-      .button {
-        margin: 0 5px;
+const StyledMDEditor = styled(MDEditor)(({ theme }: { theme: Theme }) => ({
+  "&.rc-md-editor.gitnoter-md-editor": {
+    margin: "16px 0",
+    height: 375,
+    borderColor: theme.palette.mode === 'light' ? 'rgba(0, 0, 0, 0.23)' : 'rgba(255, 255, 255, 0.23)',
+    borderRadius: theme.shape.borderRadius,
+    background: 'unset',
+    "& > .rc-md-navigation": {
+      minHeight: 56,
+      background: theme.palette.background.default,
+      borderColor: theme.palette.mode === 'light' ? 'rgba(0, 0, 0, 0.23)' : 'rgba(255, 255, 255, 0.23)',
+      borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
+      ".button-wrap": {
+        ".button": {
+          color: theme.palette.text.disabled,
+          "&:hover": {
+            color: theme.palette.action.active
+          },
+          ".drop-wrap": {
+            background: theme.palette.background.default
+          },
+          "& .header-list .list-item:hover": {
+            background: theme.palette.action.hover
+          },
+          margin: "0 5px",
+        },
+        ".rmel-iconfont": {
+          fontSize: theme.typography.fontSize + 8
+        }
       }
-      .rmel-iconfont {
-        font-size: ${theme.typography.fontSize + 8}px;
-      }
-    } 
+    },
+    "&.gitnoter-md-editor .editor-container .sec-md textarea.input": {
+      color: theme.palette.text.primary,
+      background: theme.palette.background.default,
+    },
+    "&.error": {
+      borderColor: theme.palette.error.main
+    }
   }
-
-  &.error {
-    border-color: ${theme.palette.error.main};
-  }
-  `,
-);
+}));
 
 const isLoading = (apiStatus: APIStatus): boolean => {
   const { getNoteAsync, saveNoteAsync } = apiStatus;
