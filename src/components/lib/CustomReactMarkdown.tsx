@@ -8,8 +8,8 @@ import remarkGfm from 'remark-gfm';
 const StyledReactMarkdown = styled(ReactMarkdown)(
   ({ theme }: { theme: Theme }) => ({
     position: "relative",
+    color: theme.palette.text.secondary,
     pre: {
-      code: { backgroundColor: "unset" },
       display: "flex",
       backgroundColor: theme.palette.action.disabledBackground,
       svg: {
@@ -18,8 +18,16 @@ const StyledReactMarkdown = styled(ReactMarkdown)(
           opacity: 1
         },
       },
+      code: {
+        backgroundColor: "unset",
+        borderRadius: 2
+      },
     },
-    color: theme.palette.text.secondary
+    "p > code": {
+      backgroundColor: theme.palette.action.disabledBackground,
+      borderRadius: 2,
+      padding: 4
+    }
   }));
 
 const CustomReactMarkdown: React.FC<ReactMarkdownOptions> = (props: ReactMarkdownOptions): ReactElement => {
