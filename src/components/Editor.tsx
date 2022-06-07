@@ -48,9 +48,17 @@ const StyledMDEditor = styled(MDEditor)(({ theme }: { theme: Theme }) => ({
         }
       }
     },
-    "&.gitnoter-md-editor .editor-container .sec-md textarea.input": {
-      color: theme.palette.text.primary,
-      background: theme.palette.background.default,
+    "&.gitnoter-md-editor .editor-container": {
+      ".sec-md textarea.input": {
+        color: theme.palette.text.primary,
+        background: theme.palette.background.default,
+      },
+      "blockquote": {
+        color: theme.palette.mode === 'light' ? theme.palette.text.primary : theme.palette.text.secondary
+      },
+      "th": {
+        color: 'rgba(0, 0, 0, 0.6)'
+      }
     },
     "&.error": {
       borderColor: theme.palette.error.main

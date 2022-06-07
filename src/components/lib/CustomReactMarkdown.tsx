@@ -27,6 +27,12 @@ const StyledReactMarkdown = styled(ReactMarkdown)(
       backgroundColor: theme.palette.action.disabledBackground,
       borderRadius: 2,
       padding: 4
+    },
+    "blockquote": {
+      color: theme.palette.mode === 'light' ? theme.palette.text.primary : theme.palette.text.secondary
+    },
+    "th": {
+      color: "rgba(0, 0, 0, 0.6)"
     }
   }));
 
