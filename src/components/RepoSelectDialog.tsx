@@ -43,11 +43,7 @@ const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): Reac
     setDefaultRepoName(String(event.target.value) || '');
 
     const visibility = repos.filter(r => r.name === String(event.target.value))[0]['visibility']
-    if(visibility === 'public'){
-      setDefaultAlertOpen(true);
-    }else{
-      setDefaultAlertOpen(false);
-    }
+    visibility === 'public' && setDefaultAlertOpen(true) || setDefaultAlertOpen(false);
   }
 
   const handleSave = async () => {
@@ -74,12 +70,9 @@ const RepoSelectDialog: React.FC<Props> = ({ open, setOpen, defaultRepo }): Reac
               {repos.map(r => <MenuItem key={r.name} value={r.name}>{r.name} (<SourceBranch sx={{ verticalAlign: 'middle' }} fontSize='inherit' /> {r.default_branch || 'main'})</MenuItem>)}
             </Select>
             <Collapse in={alertOpen}>
-                <Alert sx={{ mt:2 }} severity="warning">
-                  {`You've selected a public repository. Notes could be accessed publicly.`}
-                </Alert>
-      </Collapse>
+                <Alert sx={{ mt:2 }} severity="warning">You've selected a public repository. Notes could be accessed publicly.</Alert>
+            </Collapse>
           </FormControl>
-
         </Box>
       </DialogContent>
       <DialogActions>
