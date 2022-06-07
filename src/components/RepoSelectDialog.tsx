@@ -14,10 +14,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatus, APIStatusType } from '../reducer/common';
 import { getUserReposAsync, saveDefaultRepoAsync, selectPreferenceAPIStatus, selectUserRepos } from '../reducer/preferenceSlice';
 import { getUserProfileAsync } from '../reducer/userSlice';
-import Snackbar from '@mui/material/Snackbar';
-import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
-import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
 
 interface Props {
