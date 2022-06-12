@@ -19,7 +19,7 @@
 [BatNoter](https://batnoter.com) is a web application that allows users to store notes in their git repository. This is a frontend project built using mainly react (typescript), redux-toolkit & mui components. [BatNoter API](https://github.com/batnoter/batnoter-api) is the backend implementation of REST APIs which are used by this react app.
 
 <p align="center">
-  <kbd><img src="https://raw.githubusercontent.com/batnoter/batnoter/main/demo.gif" alt="BatNoter Demo"/></kbd>
+  <kbd><img src="https://raw.githubusercontent.com/batnoter/batnoter/main/public/demo.gif" alt="BatNoter Demo"/></kbd>
 </p>
 
 ### Features

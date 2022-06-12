@@ -42,7 +42,7 @@ const Login: React.FC<Props> = ({ user, handleLogin, userAPIStatus }): ReactElem
 
       <Box display="flex" sx={{ my: 2 }} alignItems="center" justifyContent={'space-around'}>
         <Box flexGrow={1} sx={{ mx: 0, my: 2 }} display={{ xs: "none", md: "block" }}>
-          <iframe height="672px" width="100%" src="https://www.youtube-nocookie.com/embed/-eBf8KiI9l4?autoplay=1&loop=1&playlist=-eBf8KiI9l4&mute=1&autohide=1&modestbranding=1&iv_load_policy=3&rel=0" frameBorder="0"></iframe>
+          <img style={{ width: '100%', border: "1px solid #80808080", borderRadius: "8px" }} src="/demo.gif" />
         </Box>
         <Box flexShrink={0} sx={{ my: 6, ml: 4, p: 2, width: '400px', height: '100%', border: '1px solid grey', borderRadius: 2 }}>
           <Typography variant="h5" align="center">GET STARTED</Typography>
