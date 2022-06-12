@@ -3,7 +3,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { Avatar, Button, CircularProgress, Link, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
+import { Avatar, Box, Button, CircularProgress, Link, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { HelpCircle } from 'mdi-material-ui';
@@ -20,11 +20,16 @@ interface Props {
   handleLogout: () => void
 }
 
-
 const getExternalLink = (url: string, label: string, Icon: OverridableComponent<SvgIconTypeMap>): ReactElement => {
-  return <Link href={url} sx={{ mx: 1, color: 'inherit' }} target="_blank" rel="noopener">
-    <Icon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />{label}
-  </Link>
+  return <>
+    <Link href={url} sx={{ mx: 1, color: 'inherit', display: { xs: 'none', md: 'block' } }} target="_blank" rel="noopener" >
+      <Icon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />{label}
+    </Link>
+
+    <Link href={url} sx={{ mx: 1, color: 'inherit', fontSize: '120%', display: { xs: 'block', md: 'none' } }} target="_blank" rel="noopener" >
+      <Icon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />
+    </Link>
+  </>
 }
 
 const isLoading = (apiStatus: APIStatusType): boolean => {
@@ -52,13 +57,17 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
         {getExternalLink(URL_GITHUB, "github", GitHubIcon)}
         {user == null ?
           (
-            !isLoading(userAPIStatus) ? <Button color="inherit" endIcon={<LoginIcon />} onClick={() => handleLogin()}>Login</Button>
+            !isLoading(userAPIStatus) ? <Button color="inherit" endIcon={<LoginIcon />} onClick={() => handleLogin()}><Box component="span" sx={{ display: { xs: 'none', md: 'block' } }}>Login</Box></Button>
               : <CircularProgress color="inherit" />
           )
           :
           <>
-            <Link component={NavLink} to={"/new"} sx={{ mx: 1, color: 'inherit' }}>
+            <Link component={NavLink} to={"/new"} sx={{ mx: 1, color: 'inherit', display: { xs: 'none', md: 'block' } }}>
               <AddCircleIcon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />create note
+            </Link>
+
+            <Link component={NavLink} to={"/new"} sx={{ mx: 1, color: 'inherit', fontSize: '120%', display: { xs: 'block', md: 'none' } }}>
+              <AddCircleIcon sx={{ mx: 0.5, verticalAlign: 'middle' }} fontSize="inherit" />
             </Link>
 
             <Avatar onClick={handleMenu} alt={user.name} src={user.avatar_url} sx={{ "cursor": "pointer" }}></Avatar>
