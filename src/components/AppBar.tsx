@@ -2,6 +2,7 @@ import { Login as LoginIcon } from '@mui/icons-material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import TwitterIcon from '@mui/icons-material/Twitter';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import { Avatar, Button, CircularProgress, Link, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
@@ -10,7 +11,7 @@ import React, { ReactElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import { APIStatusType } from '../reducer/common';
 import { User } from '../reducer/userSlice';
-import { URL_FAQ, URL_ISSUES, URL_TWITTER_HANDLE } from '../util/util';
+import { URL_FAQ, URL_ISSUES, URL_TWITTER_HANDLE, URL_GITHUB } from '../util/util';
 
 interface Props {
   user: User | null
@@ -48,6 +49,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
         {getExternalLink(URL_TWITTER_HANDLE, "@batnoter", TwitterIcon)}
         {getExternalLink(URL_FAQ, "faq", HelpCircle)}
         {getExternalLink(URL_ISSUES, "bug report", BugReportIcon)}
+        {getExternalLink(URL_GITHUB, "github", GitHubIcon)}
         {user == null ?
           (
             !isLoading(userAPIStatus) ? <Button color="inherit" endIcon={<LoginIcon />} onClick={() => handleLogin()}>Login</Button>
