@@ -5,20 +5,26 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import './App.scss';
 import Main from './components/Main';
+import { useAppDispatch, useAppSelector } from './app/hooks';
+import { selectAppTheme } from './reducer/preferenceSlice';
+import { setAppTheme } from './reducer/preferenceSlice';
 
 const App: React.FC = () => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
-  const theme = createTheme({
-    palette: {
-      mode: prefersDarkMode ? 'dark' : 'light',
-    },
-  });
+  const appTheme = useAppSelector(selectAppTheme);
+  const dispatch = useAppDispatch();
+
+  React.useEffect(() => {
+    dispatch(setAppTheme(prefersDarkMode ? 'dark' : 'light'));
+  }, [prefersDarkMode]);
 
   return (
     <div className="App">
       <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={createTheme({
+          palette: { mode: appTheme === 'dark' ? 'dark' : 'light' }
+        })}>
           <ModalProvider>
             <Box sx={{ display: 'flex' }}>
               <CssBaseline />

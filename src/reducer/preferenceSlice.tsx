@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { autoSetupRepo, getUserRepos, saveDefaultRepo } from "../api/api";
 import { RootState } from "../app/store";
-import { APIStatus, APIStatusType } from "./common";
+import { APIStatus, APIStatusType, AppTheme } from "./common";
 
 export interface Repo {
   name: string
@@ -12,6 +12,7 @@ export interface Repo {
 interface PreferenceState {
   userRepos: Repo[]
   status: APIStatus
+  appTheme: AppTheme
 }
 
 const initialState: PreferenceState = {
@@ -20,7 +21,8 @@ const initialState: PreferenceState = {
     getUserReposAsync: APIStatusType.IDLE,
     autoSetupRepoAsync: APIStatusType.IDLE,
     saveDefaultRepoAsync: APIStatusType.IDLE,
-  }
+  },
+  appTheme: 'system',
 }
 
 export const getUserReposAsync = createAsyncThunk(
@@ -50,6 +52,9 @@ export const preferenceSlice = createSlice({
   name: "preference",
   initialState,
   reducers: {
+    setAppTheme: (state: any, action: any) => {
+      state.appTheme = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -89,4 +94,6 @@ export const preferenceSlice = createSlice({
 
 export const selectUserRepos = (state: RootState): Repo[] => state.preference.userRepos;
 export const selectPreferenceAPIStatus = (state: RootState): APIStatus => state.preference.status;
+export const selectAppTheme = (state: RootState): AppTheme => state.preference.appTheme;
+export const { setAppTheme } = preferenceSlice.actions;
 export default preferenceSlice.reducer;
