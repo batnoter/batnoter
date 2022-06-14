@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { autoSetupRepo, getUserRepos, saveDefaultRepo } from "../api/api";
 import { RootState } from "../app/store";
 import { APIStatus, APIStatusType, AppTheme } from "./common";
@@ -52,7 +52,7 @@ export const preferenceSlice = createSlice({
   name: "preference",
   initialState,
   reducers: {
-    setAppTheme: (state: any, action: any) => {
+    setAppTheme: (state: { appTheme: string; }, action: PayloadAction<AppTheme>) => {
       state.appTheme = action.payload;
     }
   },

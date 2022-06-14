@@ -14,6 +14,7 @@ import { User } from '../reducer/userSlice';
 import { URL_FAQ, URL_GITHUB, URL_ISSUES, URL_TWITTER_HANDLE } from '../util/util';
 import { setAppTheme } from '../reducer/preferenceSlice';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { RootState } from '../app/store';
 
 interface Props {
   user: User | null
@@ -47,7 +48,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const dispatch = useAppDispatch();
-  const appTheme = useAppSelector((state: any) => state.preference.appTheme);
+  const appTheme = useAppSelector((state: RootState) => state.preference.appTheme);
 
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
