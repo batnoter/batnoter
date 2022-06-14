@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { autoSetupRepo, getUserRepos, saveDefaultRepo } from "../api/api";
 import { RootState } from "../app/store";
-import { APIStatus, APIStatusType, AppTheme } from "./common";
+import { APIStatus, APIStatusType, ThemeMode } from "./common";
 
 export interface Repo {
   name: string
@@ -12,7 +12,7 @@ export interface Repo {
 interface PreferenceState {
   userRepos: Repo[]
   status: APIStatus
-  appTheme: AppTheme
+  themeMode: ThemeMode
 }
 
 const initialState: PreferenceState = {
@@ -22,7 +22,7 @@ const initialState: PreferenceState = {
     autoSetupRepoAsync: APIStatusType.IDLE,
     saveDefaultRepoAsync: APIStatusType.IDLE,
   },
-  appTheme: 'system',
+  themeMode: 'system',
 }
 
 export const getUserReposAsync = createAsyncThunk(
@@ -52,8 +52,8 @@ export const preferenceSlice = createSlice({
   name: "preference",
   initialState,
   reducers: {
-    setAppTheme: (state: { appTheme: string; }, action: PayloadAction<AppTheme>) => {
-      state.appTheme = action.payload;
+    setThemeMode: (state: { themeMode: string; }, action: PayloadAction<ThemeMode>) => {
+      state.themeMode = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -94,6 +94,6 @@ export const preferenceSlice = createSlice({
 
 export const selectUserRepos = (state: RootState): Repo[] => state.preference.userRepos;
 export const selectPreferenceAPIStatus = (state: RootState): APIStatus => state.preference.status;
-export const selectAppTheme = (state: RootState): AppTheme => state.preference.appTheme;
-export const { setAppTheme } = preferenceSlice.actions;
+export const selectThemeMode = (state: RootState): ThemeMode => state.preference.themeMode;
+export const { setThemeMode } = preferenceSlice.actions;
 export default preferenceSlice.reducer;

@@ -4,4 +4,4 @@ export interface APIStatus {
   [asyncName: string]: APIStatusType
 }
 
-export type AppTheme = 'light' | 'dark' | 'system' 
+export type ThemeMode = 'light' | 'dark' | 'system' 

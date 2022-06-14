@@ -12,7 +12,7 @@ import { NavLink } from 'react-router-dom';
 import { APIStatusType } from '../reducer/common';
 import { User } from '../reducer/userSlice';
 import { URL_FAQ, URL_GITHUB, URL_ISSUES, URL_TWITTER_HANDLE } from '../util/util';
-import { setAppTheme } from '../reducer/preferenceSlice';
+import { setThemeMode } from '../reducer/preferenceSlice';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { RootState } from '../app/store';
 
@@ -48,7 +48,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const dispatch = useAppDispatch();
-  const appTheme = useAppSelector((state: RootState) => state.preference.appTheme);
+  const themeMode = useAppSelector((state: RootState) => state.preference.themeMode);
 
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -59,15 +59,17 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
     setAnchorEl(null);
   };
 
+  const handleThemeModeToggle = () => {
+    if (themeMode === 'light') { dispatch(setThemeMode('dark')) }
+    else if (themeMode === 'dark') { dispatch(setThemeMode('light')) }
+  }
+
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar variant="dense" sx={{ justifyContent: "space-between" }}>
         <Link variant="h6" noWrap component={NavLink} to={"/"} sx={{ flexGrow: 1, display: "flex", color: 'inherit' }}>BATNOTER</Link>
-        <Button sx={{ mx: 1, color: 'inherit' }} onClick={() => {
-          if (appTheme === 'light') { dispatch(setAppTheme('dark')) }
-          else if (appTheme === 'dark') { dispatch(setAppTheme('light')) }
-        }}>
-          {appTheme === 'dark' ? <ThemeToggleIconLight /> : <ThemeToggleIconDark />}
+        <Button sx={{ mx: 1, color: 'inherit' }} onClick={handleThemeModeToggle}>
+          {themeMode === 'dark' ? <ThemeToggleIconLight /> : <ThemeToggleIconDark />}
         </Button>
         <AppBarLink href={URL_TWITTER_HANDLE} label="@batnoter" icon={TwitterIcon} iconColor="#b1d5ff" />
         <AppBarLink href={URL_FAQ} label="faq" icon={MessageQuestion} iconColor="#c7d097" />
