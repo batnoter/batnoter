@@ -33,6 +33,7 @@
 -   All the notes are stored inside user's github repository.
 -   Notes are cached to avoid additional API calls.
 -   URLs can be bookmarked.
+-   Dark/Light mode supported.
 
 ### Local Development Setup
 
