@@ -23,16 +23,22 @@ const StyledReactMarkdown = styled(ReactMarkdown)(
         borderRadius: 2
       },
     },
-    "p > code": {
+    "code": {
       backgroundColor: theme.palette.action.disabledBackground,
       borderRadius: 2,
       padding: 4
     },
     "blockquote": {
-      color: theme.palette.mode === 'light' ? theme.palette.text.primary : theme.palette.text.secondary
+      color: theme.palette.mode === 'light' ? theme.palette.text.primary : theme.palette.text.secondary,
+      borderColor: theme.palette.action.disabledBackground
     },
-    "th": {
-      color: "rgba(0, 0, 0, 0.6)"
+    "table": {
+      "thead > tr > th": {
+        backgroundColor: theme.palette.action.disabledBackground,
+      },
+      "&, thead > tr > th, tbody > tr > td": {
+        borderColor: theme.palette.divider,
+      }
     }
   }));
 
