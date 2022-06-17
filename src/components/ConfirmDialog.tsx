@@ -7,14 +7,14 @@ type Props = DialogProps & {
   onConfirm: () => void
 }
 
-const ConfirmDialog = (props: Props) => {
+const ConfirmDialog: React.FC<Props> = (props: Props) => {
   const { desc, onConfirm, ...otherProps } = props;
   return (
     <Dialog {...otherProps}>
       <DialogTitle id="confirm-dialog">Please Confirm</DialogTitle>
       <DialogContent>{desc}</DialogContent>
       <DialogActions>
-        <Button variant="contained" onClick={(e) => otherProps.onClose?.(e, "backdropClick")} color="inherit">CANCEL</Button>
+        <Button variant="outlined" onClick={(e) => otherProps.onClose?.(e, "backdropClick")}>CANCEL</Button>
         <Button variant="contained" onClick={(e) => { onConfirm(); otherProps.onClose?.(e, "backdropClick") }}>YES</Button>
       </DialogActions>
     </Dialog>
