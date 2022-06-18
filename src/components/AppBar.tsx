@@ -1,20 +1,21 @@
 import { Login as LoginIcon } from '@mui/icons-material';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import TwitterIcon from '@mui/icons-material/Twitter';
 import ThemeToggleIconDark from '@mui/icons-material/DarkMode';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import ThemeToggleIconLight from '@mui/icons-material/LightMode';
+import TwitterIcon from '@mui/icons-material/Twitter';
 import { Avatar, Box, Button, CircularProgress, Link, LinkProps, LinkTypeMap, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { Ladybug, MessageQuestion, PlusBox } from 'mdi-material-ui';
 import React, { ReactElement } from 'react';
 import { NavLink } from 'react-router-dom';
-import { APIStatusType } from '../reducer/common';
-import { User } from '../reducer/userSlice';
-import { URL_FAQ, URL_GITHUB, URL_ISSUES, URL_TWITTER_HANDLE } from '../util/util';
-import { setThemeMode } from '../reducer/preferenceSlice';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { RootState } from '../app/store';
+import { APIStatusType } from '../reducer/common';
+import { setThemeMode } from '../reducer/preferenceSlice';
+import { User } from '../reducer/userSlice';
+import { URL_FAQ, URL_GITHUB, URL_ISSUES, URL_SPONSOR, URL_TWITTER_HANDLE } from '../util/util';
 
 interface Props {
   user: User | null
@@ -71,6 +72,7 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
         <Button sx={{ mx: 1, color: 'inherit' }} onClick={handleThemeModeToggle}>
           {themeMode === 'dark' ? <ThemeToggleIconLight /> : <ThemeToggleIconDark />}
         </Button>
+        <AppBarLink href={URL_SPONSOR} label="sponsor" icon={FavoriteIcon} iconColor="#d489b5" />
         <AppBarLink href={URL_TWITTER_HANDLE} label="@batnoter" icon={TwitterIcon} iconColor="#b1d5ff" />
         <AppBarLink href={URL_FAQ} label="faq" icon={MessageQuestion} iconColor="#c7d097" />
         <AppBarLink href={URL_ISSUES} label="bug report" icon={Ladybug} iconColor="#eeb082" />
