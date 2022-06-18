@@ -7,6 +7,7 @@ export const URL_FAQ = `${URL_REPO}/wiki/FAQ`
 export const URL_ISSUES = `${URL_REPO}/issues`
 export const URL_TWITTER_HANDLE = "https://twitter.com/batnoter";
 export const URL_GITHUB = URL_REPO;
+export const URL_SPONSOR = "https://github.com/sponsors/vivekweb2013";
 
 const REPLACE_EXT_REGEX = /(\.md)$/i;
 const EXT = '.md';
