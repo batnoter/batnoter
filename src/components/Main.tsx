@@ -11,7 +11,7 @@ import { getNotesAsync, getNotesTreeAsync } from '../reducer/noteSlice';
 import { getUserProfileAsync, selectUser, selectUserAPIStatus, User, userLoading, userLogout } from '../reducer/userSlice';
 import ErrorPage from "./404";
 import AppBar from './AppBar';
-import AppDrawer from './AppDrawer';
+import AppDrawer, { Props } from './AppDrawer';
 import Editor from './Editor';
 import Finder from './Finder';
 import RequireAuth from './lib/RequireAuth';
@@ -19,10 +19,11 @@ import Login from './Login';
 import RepoSetupDialog from './RepoSetupDialog';
 import Settings from './Settings';
 import Viewer from './Viewer';
-const DrawerLayout: React.FC<{ user: User | null }> = ({ user }): ReactElement => {
+const DrawerLayout: React.FC<Omit<Props, 'variant'>> = (props): ReactElement => {
   return (
     <Box sx={{ display: 'flex', flexGrow: 1 }}>
-      <AppDrawer user={user} />
+      <AppDrawer user={props.user} variant={'permanent'} />
+      <AppDrawer user={props.user} mobileDrawerOpen={props.mobileDrawerOpen} onDrawerClose={props.onDrawerClose} variant={'temporary'} />
       <Box component="main" sx={{
         flexGrow: 1, height: '100vh', overflow: 'auto'
       }}>
@@ -44,6 +45,7 @@ const Main: React.FC = (): ReactElement => {
   const user = useAppSelector(selectUser);
   const userAPIStatus = useAppSelector(selectUserAPIStatus);
   const [apiTriggered, setAPITriggered] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false);
 
   const handleLogin = () => {
     dispatch(userLoading());
@@ -52,6 +54,14 @@ const Main: React.FC = (): ReactElement => {
 
   const handleLogout = () => {
     dispatch(userLogout());
+  }
+
+  const handleDrawerClose = () => {
+    setMobileDrawerOpen(false);
+  }
+
+  const handleDrawerToggle= () => {
+    setMobileDrawerOpen(!mobileDrawerOpen);
   }
 
   useEffect(() => {
@@ -70,14 +80,14 @@ const Main: React.FC = (): ReactElement => {
 
   return (
     <>
-      <AppBar userAPIStatus={userAPIStatus} handleLogin={handleLogin} handleLogout={handleLogout} user={user} />
+      <AppBar userAPIStatus={userAPIStatus} handleLogin={handleLogin} handleLogout={handleLogout} user={user} onDrawerToggle={handleDrawerToggle} />
       <Container maxWidth="xl">
         {user != null && !user?.default_repo?.name && <RepoSetupDialog open={true}></RepoSetupDialog>}
         {
           !apiTriggered || isUserAPILoading(userAPIStatus) ? <CircularProgress color="inherit" sx={{ ml: '50%', mt: 10 }} /> :
             <Routes>
               <Route path="/login" element={<Login userAPIStatus={userAPIStatus} handleLogin={handleLogin} user={user} />} />
-              <Route path="/" element={<DrawerLayout user={user} />} >
+              <Route path="/" element={<DrawerLayout user={user} mobileDrawerOpen={mobileDrawerOpen} onDrawerClose={handleDrawerClose} />} >
                 <Route index element={<RequireAuth user={user}><Finder /></RequireAuth>} />
                 <Route path="/new" element={<RequireAuth user={user}><Editor key={'new'} /></RequireAuth>} />
                 <Route path="/edit" element={<RequireAuth user={user}><Editor key={'edit'} /></RequireAuth>} />

@@ -2,9 +2,10 @@ import { Login as LoginIcon } from '@mui/icons-material';
 import ThemeToggleIconDark from '@mui/icons-material/DarkMode';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import MenuIcon from '@mui/icons-material/Menu';
 import ThemeToggleIconLight from '@mui/icons-material/LightMode';
 import TwitterIcon from '@mui/icons-material/Twitter';
-import { Avatar, Box, Button, CircularProgress, Link, LinkProps, LinkTypeMap, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
+import { Avatar, Box, Button, CircularProgress, IconButton, Link, LinkProps, LinkTypeMap, Menu, MenuItem, SvgIconTypeMap, Toolbar } from '@mui/material';
 import AppBarComponent from '@mui/material/AppBar';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { Ladybug, MessageQuestion, PlusBox } from 'mdi-material-ui';
@@ -22,6 +23,7 @@ interface Props {
   userAPIStatus: APIStatusType
   handleLogin: () => void
   handleLogout: () => void
+  onDrawerToggle: () => void
 }
 
 export type AppBarLinkProps = {
@@ -45,7 +47,7 @@ const isLoading = (apiStatus: APIStatusType): boolean => {
   return apiStatus === APIStatusType.LOADING;
 }
 
-const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogout }): ReactElement => {
+const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogout, onDrawerToggle }): ReactElement => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const dispatch = useAppDispatch();
@@ -68,6 +70,16 @@ const AppBar: React.FC<Props> = ({ user, userAPIStatus, handleLogin, handleLogou
   return (
     <AppBarComponent position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar variant="dense" sx={{ justifyContent: "space-between" }}>
+        <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2, display: { sm: 'none' } }}
+            onClick={onDrawerToggle}
+          >
+            <MenuIcon />
+        </IconButton>
         <Link variant="h6" noWrap component={NavLink} to={"/"} sx={{ flexGrow: 1, display: "flex", color: 'inherit' }}>BATNOTER</Link>
         <Button sx={{ mx: 1, color: 'inherit' }} onClick={handleThemeModeToggle}>
           {themeMode === 'dark' ? <ThemeToggleIconLight /> : <ThemeToggleIconDark />}
