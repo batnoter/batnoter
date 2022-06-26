@@ -8,7 +8,7 @@ import { API_URL } from '../api/api';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { APIStatusType } from '../reducer/common';
 import { getNotesAsync, getNotesTreeAsync } from '../reducer/noteSlice';
-import { getUserProfileAsync, selectUser, selectUserAPIStatus, User, userLoading, userLogout } from '../reducer/userSlice';
+import { getUserProfileAsync, selectUser, selectUserAPIStatus, userLoading, userLogout } from '../reducer/userSlice';
 import ErrorPage from "./404";
 import AppBar from './AppBar';
 import AppDrawer, { Props } from './AppDrawer';
