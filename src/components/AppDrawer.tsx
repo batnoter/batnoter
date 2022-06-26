@@ -15,13 +15,16 @@ import TreeUtil from '../util/TreeUtil';
 import { confirmDeleteNote, getTitleFromFilename, isFilePath, splitPath } from '../util/util';
 import StyledTreeItem from './StyledTreeItem';
 
-interface Props {
+export interface Props {
   user: User | null
+  mobileDrawerOpen?: boolean
+  onDrawerClose?: () => void
+  variant: 'temporary' | 'permanent'
 }
 
-export const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 240;
 
-const AppDrawer: React.FC<Props> = (): ReactElement => {
+const AppDrawer: React.FC<Props> = (props): ReactElement => {
   const dispatch = useAppDispatch();
   const { showModal } = useModal();
   const navigate = useNavigate();
@@ -38,6 +41,10 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   useEffect(() => {
     setExpanded(getAllSubpath(path));
   }, [tree, path])
+
+  const handleDrawerClose = () => {
+    if (props.onDrawerClose) props.onDrawerClose();
+  }
 
   const handleNodeSelect = (e: React.SyntheticEvent, path: string) => {
     isFilePath(path) ? navigate(`/view?path=${encodeURIComponent(path)}`)
@@ -76,7 +83,17 @@ const AppDrawer: React.FC<Props> = (): ReactElement => {
   const treeJSX = renderTree(tree);
 
   return (
-    <Drawer variant="permanent" sx={{ width: DRAWER_WIDTH, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}>
+    <Drawer
+      variant={props.variant}
+      ModalProps={{ keepMounted: true }}
+      open={props.mobileDrawerOpen}
+      onClose={handleDrawerClose}
+      sx={{
+        width: DRAWER_WIDTH,
+        flexShrink: 0,
+        [`& .MuiDrawer-paper`]: { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+        display: { xs: props.variant === 'temporary' ? 'block' : 'none', sm: props.variant === 'temporary' ? 'none' : 'block' }
+      }}>
       <Toolbar variant="dense" />
       <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}
         expanded={expanded} selected={path} onNodeSelect={handleNodeSelect}
